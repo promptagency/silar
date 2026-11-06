@@ -1,0 +1,105 @@
+{
+  "01-protokoll-styrelsemote.docx": {
+    "must_contain": [
+      "# Protokoll styrelsemöte",
+      "## 1. Närvarande",
+      "Åsa Lindqvist",
+      "**positivt med 42 300 kr**",
+      "| Medlemsavgifter | 120 000 | 118 500 |",
+      "1. Styrelsen beslutade"
+    ],
+    "tests": "Headings, bullet and numbered lists, bold run, simple table, Swedish characters"
+  },
+  "02-offert-sidhuvud.docx": {
+    "must_contain": [
+      "# Offert AI Discovery",
+      "Ledningsgrupp",
+      "| Intervjuer | 16 | 19 200 kr |",
+      "*Moms tillkommer.*"
+    ],
+    "should_handle": "Header/footer text either omitted or placed once, not repeated. Nested list indented. Merged cell row not breaking the table.",
+    "tests": "Header and footer, nested list, merged table cells, italic"
+  },
+  "03-budget-forening.xlsx": {
+    "must_contain": [
+      "## Budget 2027",
+      "## Kontaktlista",
+      "Medlemsavgifter",
+      "Göran Åkesson"
+    ],
+    "should_handle": "Formula cells show cached value or formula consistently (note: file saved by openpyxl has NO cached values, a realistic edge case for files not opened in Excel). Empty sheet skipped or marked empty. Title row above table not treated as header.",
+    "tests": "Multiple sheets, formulas without cached values, empty sheet, title row above header"
+  },
+  "04-export-svensk-excel.csv": {
+    "must_contain": [
+      "| Flytväst barn | 12 | 449,50 |",
+      "Sjökort Göteborgs skärgård",
+      "Beställd; levereras v. 48"
+    ],
+    "tests": "Semicolon delimiter, decimal comma, cp1252 encoding (å ä ö must not become mojibake), quoted field containing delimiter"
+  },
+  "05-workshop-presentation.pptx": {
+    "must_contain": [
+      "AI i vardagen",
+      "Tre saker att ta med sig",
+      "Inte med verktyget",
+      "Fråga publiken",
+      "| Skrubba | Ja | Gratis |"
+    ],
+    "should_handle": "One section per slide in order. Indented sub-bullet. Speaker notes included and marked. Empty slide skipped or minimal.",
+    "tests": "Title slide, bullet levels, speaker notes, table, blank slide"
+  },
+  "06-rapport-flera-sidor.pdf": {
+    "must_contain": [
+      "Verksamhetsrapport 2026",
+      "Handläggning",
+      "fastställd av nämnden"
+    ],
+    "must_not_contain_repeated": [
+      "Socialförvaltningen Exempelby · Verksamhetsrapport",
+      "Sida 2"
+    ],
+    "should_handle": "Headings detected from font size. Running header and page numbers removed. Paragraphs not broken mid-sentence at page breaks.",
+    "tests": "Multi-page text PDF, repeating header and footer, heading detection"
+  },
+  "07-pdf-tabell.pdf": {
+    "must_contain": [
+      "Behörighet till gymnasiet",
+      "Ekenässkolan",
+      "Floda centralskola"
+    ],
+    "ideal": "| Ekenässkolan | 412 | 91 % | Ökning jämfört med 2025 |",
+    "acceptable": "Each row on its own line with values in correct order and row integrity kept.",
+    "tests": "Ruled table, empty cells, wrapped cell text. Known hard case for pdf.js"
+  },
+  "08-pdf-tvaspalt.pdf": {
+    "must_contain": [
+      "Klubbnytt hösten 2026",
+      "Ny ungdomsledare",
+      "Upptagning av båtar"
+    ],
+    "order": [
+      "VÄNSTER SPALT BÖRJAR",
+      "VÄNSTER SPALT SLUTAR",
+      "HÖGER SPALT BÖRJAR",
+      "HÖGER SPALT SLUTAR"
+    ],
+    "fail_if": "Lines from left and right column interleave",
+    "tests": "Two-column layout reading order"
+  },
+  "09-pdf-skannad.pdf": {
+    "expect_warning": "no_text_layer",
+    "must_not_contain": [
+      "Hyresavtal"
+    ],
+    "tests": "Image-only PDF. Must produce a clear warning, not an empty result without explanation"
+  },
+  "10-pdf-blandad.pdf": {
+    "must_contain": [
+      "Ansökan om föreningsbidrag",
+      "Bilaga 3 Verksamhetsplan"
+    ],
+    "expect_warning": "page_without_text: 2",
+    "tests": "Mixed PDF where one page is scanned. Warning should name the page, rest converts normally"
+  }
+}
