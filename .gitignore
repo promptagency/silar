@@ -4,3 +4,5 @@ dist/
 .DS_Store
 tests/fixtures/private/
 .claude/settings.local.json
+test-results/
+playwright-report/

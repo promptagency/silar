@@ -1,0 +1,11 @@
+{
+  "name": "Silar",
+  "short_name": "Silar",
+  "description": "Från dokument till AI-redo text, utan att filen lämnar datorn.",
+  "lang": "sv",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F6F7F9",
+  "theme_color": "#F6F7F9",
+  "icons": [{ "src": "/brand/favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}

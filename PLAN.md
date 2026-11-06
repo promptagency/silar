@@ -12,12 +12,12 @@ Phases are ordered by risk. PDF is the part most likely to sink the product, so 
 ## Phases
 
 ### Phase 0 – Setup
-- [ ] Read Skrubba's document readers, worker setup, PWA config and Plausible Cloudflare Function at `/Users/mikael.quick/Documents/Projects/github/skrubba`. Write `docs/decisions/0001-patterns-from-skrubba.md` listing which patterns are borrowed. No code dependency between the repos
-- [ ] Scaffold Vite + React 19 + TypeScript, plain CSS, PWA plugin
+- [x] Read Skrubba's document readers, worker setup, PWA config and Plausible Cloudflare Function at `/Users/mikael.quick/Documents/Projects/github/skrubba`. Write `docs/decisions/0001-patterns-from-skrubba.md` listing which patterns are borrowed. No code dependency between the repos
+- [x] Scaffold Vite + React 19 + TypeScript, plain CSS, PWA plugin
 - [x] Fixtures in `tests/fixtures/`, `tests/fixtures/private/` in `.gitignore` (done at handoff)
-- [ ] Vitest harness that loops over `checks.json`, applies the machine-checkable keys and ignores the rest (`ideal`, `acceptable`, `should_handle`, `fail_if` are for manual review). All failing is expected
-- [ ] Confirm every chosen parser imports and runs in Node (Vitest) before building on it
-- [ ] `_headers` with CSP, Cloudflare Pages preview deploy
+- [x] Vitest harness that loops over `checks.json`, applies the machine-checkable keys and ignores the rest (`ideal`, `acceptable`, `should_handle`, `fail_if` are for manual review). All failing is expected
+- [x] Confirm every chosen parser imports and runs in Node (Vitest) before building on it
+- [ ] `_headers` with CSP (done), Cloudflare Pages preview deploy (waiting: no remote or deploy yet)
 Checkpoint: show the repo structure, the failing test report and the preview URL.
 
 ### Phase 1 – Converter core, docx, csv, xlsx

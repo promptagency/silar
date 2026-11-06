@@ -1,0 +1,15 @@
+# Cloudflare Pages headers. tests/headers.test.ts keeps the CSP equal to the
+# one in vite.config.ts (also set as a meta tag, so it holds on any host).
+# The header adds frame-ancestors, which a meta tag cannot set.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; connect-src 'self'; worker-src 'self'; img-src 'self' data:; style-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+
+# Vite names these after their content, so they never change.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Browsers must always see the newest service worker.
+/sw.js
+  Cache-Control: no-cache
