@@ -17,7 +17,7 @@ Phases are ordered by risk. PDF is the part most likely to sink the product, so 
 - [x] Fixtures in `tests/fixtures/`, `tests/fixtures/private/` in `.gitignore` (done at handoff)
 - [x] Vitest harness that loops over `checks.json`, applies the machine-checkable keys and ignores the rest (`ideal`, `acceptable`, `should_handle`, `fail_if` are for manual review). All failing is expected
 - [x] Confirm every chosen parser imports and runs in Node (Vitest) before building on it
-- [ ] `_headers` with CSP (done), Cloudflare Pages preview deploy (waiting: no remote or deploy yet)
+- [x] `_headers` with CSP, Cloudflare Pages deploy at `https://silar.pages.dev` (Git-connected, private repo `promptagency/silar`)
 Checkpoint: show the repo structure, the failing test report and the preview URL.
 
 ### Phase 1 – Converter core, docx, csv, xlsx

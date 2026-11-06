@@ -78,7 +78,7 @@ docs/decisions/
 - `npm test` Vitest: `tests/convert.test.ts` (checks.json), `tests/parsers.test.ts` (Node parser gate), `tests/headers.test.ts` (CSP in `_headers` = `vite.config.ts`)
 - `node scripts/show.ts <files>` print `convert()` output and warnings, for checkpoints
 - `npm run test:e2e` Playwright against a fresh build on port 4173 (first time: `npx playwright install chromium`)
-- deploy: not set up yet. Planned as Cloudflare Pages Git integration, build `npm run build`, output `dist`, Node from `.node-version`
+- deploy: push to GitHub `promptagency/silar`. Cloudflare Pages project `silar` builds every branch (`npm run build`, output `dist`, Node from `.node-version`). `main` goes to `https://silar.pages.dev`, other branches get preview URLs. No custom domain yet (`silar.app` is not registered)
 
 ## Ask before
 - Adding any dependency, service or paid API
