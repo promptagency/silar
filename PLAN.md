@@ -21,12 +21,12 @@ Phases are ordered by risk. PDF is the part most likely to sink the product, so 
 Checkpoint: show the repo structure, the failing test report and the preview URL.
 
 ### Phase 1 – Converter core, docx, csv, xlsx
-- [ ] `convert()`, format detection (extension, then zip inspection, then `%PDF`), `unsupported_format` and `large_file` warnings
-- [ ] docx via mammoth + turndown, GFM tables, hyperlinks kept as `[text](url)`, header/footer not in output
-- [ ] csv with encoding detection (strict UTF-8 decode, fallback windows-1252 with `encoding_fallback`) and delimiter sniffing (`;` `,` tab)
-- [ ] xlsx: one `##` section per non-empty sheet, Markdown table per sheet, title rows above the header handled, dates and percentages rendered as displayed text not serial numbers, `formula_without_value` when cached values are missing
-- [ ] Extend `tests/fixtures/generate.py` with two fixtures: an xlsx with date and percentage cells, a docx with hyperlinks. Add their checks to `checks.json`
-- [ ] Each parser lazy-loaded
+- [x] `convert()`, format detection (extension, then zip inspection, then `%PDF`), `unsupported_format` and `large_file` warnings
+- [x] docx via mammoth + turndown, GFM tables, hyperlinks kept as `[text](url)`, header/footer not in output
+- [x] csv with encoding detection (strict UTF-8 decode, fallback windows-1252 with `encoding_fallback`) and delimiter sniffing (`;` `,` tab)
+- [x] xlsx: one `##` section per non-empty sheet, Markdown table per sheet, title rows above the header handled, dates and percentages rendered as displayed text not serial numbers, `formula_without_value` when cached values are missing
+- [x] Extend `tests/fixtures/generate.py` with two fixtures: an xlsx with date and percentage cells, a docx with hyperlinks. Add their checks to `checks.json`
+- [x] Each parser lazy-loaded
 Checkpoint: fixtures 01 to 04 plus the two new ones pass. Show the Markdown output of each.
 
 ### Phase 2 – PDF, text and structure

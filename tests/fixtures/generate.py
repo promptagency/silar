@@ -1,9 +1,14 @@
 """Generate the Silar test fixture set. All people and organisations are fictional."""
 import csv
 import json
+import os
+from datetime import date
 from pathlib import Path
 
 from docx import Document
+from docx.opc.constants import RELATIONSHIP_TYPE as RT
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
 from docx.shared import Pt
 from openpyxl import Workbook
 from openpyxl.styles import Font
@@ -22,7 +27,7 @@ from reportlab.platypus import (BaseDocTemplate, Frame, PageTemplate, Paragraph,
 
 OUT = Path(__file__).parent
 OUT.mkdir(exist_ok=True)
-FONT_DIR = "/usr/share/fonts/truetype/dejavu/"
+FONT_DIR = os.environ.get("FONT_DIR", "/usr/share/fonts/truetype/dejavu/")
 pdfmetrics.registerFont(TTFont("DV", FONT_DIR + "DejaVuSans.ttf"))
 pdfmetrics.registerFont(TTFont("DVB", FONT_DIR + "DejaVuSans-Bold.ttf"))
 
@@ -260,6 +265,47 @@ checks["10-pdf-blandad.pdf"] = {
     "must_contain": ["Ansökan om föreningsbidrag", "Bilaga 3 Verksamhetsplan"],
     "expect_warning": "page_without_text: 2",
     "tests": "Mixed PDF where one page is scanned. Warning should name the page, rest converts normally"}
+
+# 11 xlsx: dates and percentages must show as displayed, not as serial numbers
+wb = Workbook()
+ws = wb.active; ws.title = "Uppföljning"
+ws.append(["Datum", "Andel klar", "Kostnad"])
+for d_, share, share_fmt, cost, date_fmt in [
+        (date(2026, 3, 15), 0.125, "0.0%", 1234.5, "mm-dd-yy"),  # built-in format 14, the locale's short date
+        (date(2026, 4, 1), 0.5, "0%", 980, "yyyy-mm-dd")]:
+    ws.append([d_, share, cost])
+    r = ws.max_row
+    ws.cell(r, 1).number_format = date_fmt
+    ws.cell(r, 2).number_format = share_fmt
+    ws.cell(r, 3).number_format = "#,##0.00"
+wb.save(OUT / "11-datum-procent.xlsx")
+serial = (date(2026, 3, 15) - date(1899, 12, 30)).days
+checks["11-datum-procent.xlsx"] = {
+    "must_contain": ["## Uppföljning", "| 2026-03-15 | 12,5% | 1 234,50 |", "| 2026-04-01 | 50% | 980,00 |"],
+    "must_not_contain": [str(serial), "0.125"],
+    "tests": "Date cells (built-in short date and custom yyyy-mm-dd), percentages, thousands separator and decimals as Swedish Excel shows them"}
+
+
+# 12 docx: hyperlinks kept as [text](url)
+def add_link(paragraph, text, url):
+    r_id = paragraph.part.relate_to(url, RT.HYPERLINK, is_external=True)
+    link = OxmlElement("w:hyperlink"); link.set(qn("r:id"), r_id)
+    run = OxmlElement("w:r"); t = OxmlElement("w:t"); t.text = text
+    run.append(t); link.append(run); paragraph._p.append(link)
+
+
+d = Document()
+d.add_heading("Länkar för nya styrelseledamöter", 1)
+p = d.add_paragraph("Läs ")
+add_link(p, "föreningsguiden", "https://example.se/foreningsguide")
+p.add_run(" innan första mötet.")
+p = d.add_paragraph("Stadgarna: ", style="List Bullet")
+add_link(p, "stadgar 2026", "https://example.se/stadgar?ar=2026")
+d.save(OUT / "12-lankar.docx")
+checks["12-lankar.docx"] = {
+    "must_contain": ["Läs [föreningsguiden](https://example.se/foreningsguide) innan första mötet.",
+                     "- Stadgarna: [stadgar 2026](https://example.se/stadgar?ar=2026)"],
+    "tests": "External hyperlinks in a paragraph and a list item, URL with query string"}
 
 (OUT / "checks.json").write_text(json.dumps(checks, ensure_ascii=False, indent=2), encoding="utf-8")
 print("\n".join(sorted(p.name for p in OUT.iterdir())))

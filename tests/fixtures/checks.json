@@ -101,5 +101,24 @@
     ],
     "expect_warning": "page_without_text: 2",
     "tests": "Mixed PDF where one page is scanned. Warning should name the page, rest converts normally"
+  },
+  "11-datum-procent.xlsx": {
+    "must_contain": [
+      "## Uppföljning",
+      "| 2026-03-15 | 12,5% | 1 234,50 |",
+      "| 2026-04-01 | 50% | 980,00 |"
+    ],
+    "must_not_contain": [
+      "46096",
+      "0.125"
+    ],
+    "tests": "Date cells (built-in short date and custom yyyy-mm-dd), percentages, thousands separator and decimals as Swedish Excel shows them"
+  },
+  "12-lankar.docx": {
+    "must_contain": [
+      "Läs [föreningsguiden](https://example.se/foreningsguide) innan första mötet.",
+      "- Stadgarna: [stadgar 2026](https://example.se/stadgar?ar=2026)"
+    ],
+    "tests": "External hyperlinks in a paragraph and a list item, URL with query string"
   }
 }

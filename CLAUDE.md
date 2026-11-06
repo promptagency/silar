@@ -76,6 +76,7 @@ docs/decisions/
 - `npm run dev` Vite dev server (no CSP meta tag in dev)
 - `npm run build` type check + production build to `dist/`, Vite prints size per chunk
 - `npm test` Vitest: `tests/convert.test.ts` (checks.json), `tests/parsers.test.ts` (Node parser gate), `tests/headers.test.ts` (CSP in `_headers` = `vite.config.ts`)
+- `node scripts/show.ts <files>` print `convert()` output and warnings, for checkpoints
 - `npm run test:e2e` Playwright against a fresh build on port 4173 (first time: `npx playwright install chromium`)
 - deploy: not set up yet. Planned as Cloudflare Pages Git integration, build `npm run build`, output `dist`, Node from `.node-version`
 
