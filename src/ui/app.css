@@ -96,7 +96,7 @@ nav a:hover {
 }
 
 /* Sections */
-main > section + section {
+main > section.wrap + section.wrap {
   margin-top: 80px;
 }
 
@@ -500,7 +500,7 @@ main > section > h2 {
     margin-top: 32px;
   }
 
-  main > section + section {
+  main > section.wrap + section.wrap {
     margin-top: 56px;
   }
 
@@ -524,7 +524,8 @@ main > section > h2 {
   }
 
   .steps,
-  .compare {
+  .compare,
+  .formats {
     grid-template-columns: 1fr;
   }
 
