@@ -92,7 +92,7 @@ para = d.add_paragraph("Priset gäller i 30 dagar. ")
 para.add_run("Moms tillkommer.").italic = True
 d.save(OUT / "02-offert-sidhuvud.docx")
 checks["02-offert-sidhuvud.docx"] = {
-    "must_contain": ["# Offert AI Discovery", "Ledningsgrupp", "| Intervjuer | 16 | 19 200 kr |", "*Moms tillkommer.*"],
+    "must_contain": ["# Offert AI Discovery", "- Intervjuer med nyckelpersoner\n  - Ledningsgrupp\n  - Produktion och lager\n- Statusrapport", "| Intervjuer | 16 | 19 200 kr |", "*Moms tillkommer.*"],
     "should_handle": "Header/footer text either omitted or placed once, not repeated. Nested list indented. Merged cell row not breaking the table.",
     "tests": "Header and footer, nested list, merged table cells, italic"}
 
@@ -325,6 +325,49 @@ checks["13-dolda-delar.xlsx"] = {
     "must_contain": ["## Deltagare", "| Åsa Lindqvist | Lerum |", "| Jörgen Öberg | Floda |"],
     "must_not_contain": ["Löner", "Månadslön", "41", "Dold Rad", "Personnummer", "19800101"],
     "tests": "Hidden sheet, hidden row and hidden column are left out, as hidden slides are in pptx"}
+
+# 14 docx: nested lists, by numbering level (how Word nests with Tab) and by style
+def add_levels(style, fmt, text):
+    """python-docx's template defines level 0 only; Word defines 9. Add levels 1 and 2 as Word writes them."""
+    num_id = d.styles[style].element.pPr.numPr.numId.val
+    numbering = d.part.numbering_part.element
+    abstract_id = numbering.xpath(f'w:num[@w:numId="{num_id}"]/w:abstractNumId')[0].get(qn("w:val"))
+    abstract = numbering.xpath(f'w:abstractNum[@w:abstractNumId="{abstract_id}"]')[0]
+    for ilvl in (1, 2):
+        lvl = OxmlElement("w:lvl"); lvl.set(qn("w:ilvl"), str(ilvl))
+        for tag, val in [("w:start", "1"), ("w:numFmt", fmt), ("w:lvlText", text.replace("N", str(ilvl + 1)))]:
+            e = OxmlElement(tag); e.set(qn("w:val"), val); lvl.append(e)
+        abstract.append(lvl)
+
+def at_level(p, style, ilvl):
+    num_id = d.styles[style].element.pPr.numPr.numId.val
+    num_pr = p._p.get_or_add_pPr().get_or_add_numPr()
+    num_pr.get_or_add_ilvl().val = ilvl
+    num_pr.get_or_add_numId().val = num_id
+
+d = Document()
+add_levels("List Number", "lowerLetter", "%N.")
+add_levels("List Bullet", "bullet", "o")
+d.add_heading("Arbetsplan", 1)
+d.add_paragraph("Förbered workshop", style="List Number")
+for t in ["Boka lokal i Lerum", "Skicka inbjudan"]:
+    at_level(d.add_paragraph(t, style="List Number"), "List Number", 1)
+d.add_paragraph("Genomför workshop", style="List Number")
+d.add_heading("Risker", 1)
+d.add_paragraph("Tid", style="List Bullet")
+at_level(d.add_paragraph("Semestrar i juli", style="List Bullet"), "List Bullet", 1)
+at_level(d.add_paragraph("Gäller även konsulter", style="List Bullet"), "List Bullet", 2)
+d.add_paragraph("Budget", style="List Bullet")
+d.add_heading("Uppföljning", 1)
+d.add_paragraph("Sammanställ svar", style="List Number")
+d.add_paragraph("Per avdelning", style="List Number 2")
+d.add_paragraph("Per roll", style="List Number 2")
+d.save(OUT / "14-nastlade-listor.docx")
+checks["14-nastlade-listor.docx"] = {
+    "must_contain": ["1. Förbered workshop\n   1. Boka lokal i Lerum\n   2. Skicka inbjudan\n2. Genomför workshop",
+                     "- Tid\n  - Semestrar i juli\n    - Gäller även konsulter\n- Budget",
+                     "1. Sammanställ svar\n   1. Per avdelning\n   2. Per roll"],
+    "tests": "Nested lists by numbering level (Tab in Word) and by List Number 2 style, indented under their parent item"}
 
 (OUT / "checks.json").write_text(json.dumps(checks, ensure_ascii=False, indent=2), encoding="utf-8")
 print("\n".join(sorted(p.name for p in OUT.iterdir())))

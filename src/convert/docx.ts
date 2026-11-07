@@ -8,9 +8,14 @@ import type { ConvertResult } from "./types.ts";
 
 // Title becomes # and Heading n becomes n+1; promoteHeadings undoes the shift
 // when the document has no Title, so its Heading 1 stays #.
+// Mammoth nests lists by numbering level (w:ilvl) only. Word's "List Bullet 2"
+// and "List Number 2" styles carry their level in the style instead, so they
+// are nested here under the item before them.
+const nested = (level: number, list: "ul" | "ol") => `${"ul|ol > li > ".repeat(level - 1)}${list} > li:fresh`;
 const STYLE_MAP = [
   "p[style-name='Title'] => h1:fresh",
   ...[1, 2, 3, 4, 5].map((n) => `p[style-name='Heading ${n}'] => h${n + 1}:fresh`),
+  ...[2, 3, 4, 5].flatMap((n) => [`p[style-name='List Bullet ${n}'] => ${nested(n, "ul")}`, `p[style-name='List Number ${n}'] => ${nested(n, "ol")}`]),
 ];
 
 function promoteHeadings(html: string): string {

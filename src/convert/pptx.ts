@@ -78,12 +78,28 @@ function shapes(nodes: Node[], slide: Slide): void {
       }
       // Body and content placeholders are bulleted unless a paragraph says buNone;
       // text boxes only when a paragraph asks for a bullet.
+      // Numbered paragraphs (buAutoNum) count per level; a shallower item or a
+      // plain bullet at the same level restarts the count. Letters and roman
+      // numerals become 1., 2. too: Markdown has no other list numbers.
+      // shortcut: numbering set only in the slide layout or master comes out as "-".
+      const counts: number[] = [];
+      const widths: number[] = [];
       const lines = paras.map(({ text, pPr }) => {
-        const bulleted = pPr && (child(pPr, "a:buChar") || child(pPr, "a:buAutoNum")) ? true : pPr && child(pPr, "a:buNone") ? false : type === "body" || type === "obj";
-        // shortcut: numbered bullets (buAutoNum) come out as "-" items.
-        return bulleted ? `${"  ".repeat(Number(attr(pPr ?? {}, "lvl") ?? 0))}- ${text}` : text;
+        const auto = pPr ? child(pPr, "a:buAutoNum") : undefined;
+        const bulleted = pPr && (child(pPr, "a:buChar") || auto) ? true : pPr && child(pPr, "a:buNone") ? false : type === "body" || type === "obj";
+        if (!bulleted) {
+          counts.length = 0;
+          return text;
+        }
+        const lvl = Number(attr(pPr ?? {}, "lvl") ?? 0);
+        counts.length = auto ? lvl + 1 : lvl;
+        const marker = auto ? `${(counts[lvl] = (counts[lvl] ?? Number(attr(auto, "startAt") ?? 1) - 1) + 1)}. ` : "- ";
+        widths[lvl] = marker.length;
+        // Indented by the parents' marker widths, so "1. " nests by 3 and "- " by 2.
+        const indent = widths.slice(0, lvl).reduce((sum, w) => sum + (w ?? 2), 0);
+        return `${" ".repeat(indent)}${marker}${text}`;
       });
-      slide.blocks.push(lines.join(lines.every((l) => /^\s*- /.test(l)) ? "\n" : "\n\n"));
+      slide.blocks.push(lines.join(lines.every((l) => /^\s*(- |\d+\. )/.test(l)) ? "\n" : "\n\n"));
     }
   }
 }

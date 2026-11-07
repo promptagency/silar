@@ -24,3 +24,31 @@ it("follows presentation.xml order, skips hidden slides and footers, keeps run s
   const { markdown } = await convertPptx(zip);
   expect(markdown).toBe("## Bild 1: Första\n\nBil & båt rad två\n\n## Bild 2: Andra");
 });
+
+it("numbers buAutoNum paragraphs per level and nests by the parent's marker width", async () => {
+  const p = (text: string, pPr = "") => `<a:p>${pPr}<a:r><a:t>${text}</a:t></a:r></a:p>`;
+  const num = (lvl = 0, extra = "") => `<a:pPr lvl="${lvl}"><a:buAutoNum type="arabicPeriod"${extra}/></a:pPr>`;
+  const zip = zipSync({
+    "ppt/presentation.xml": strToU8(`<p:presentation ${NS}><p:sldIdLst><p:sldId id="256" r:id="rA"/></p:sldIdLst></p:presentation>`),
+    "ppt/_rels/presentation.xml.rels": strToU8(`<Relationships>${rel("rA", "slides/slide1.xml")}</Relationships>`),
+    "ppt/slides/slide1.xml": strToU8(
+      slide(
+        sp('<p:ph type="title"/>', p("Plan")) +
+          sp(
+            '<p:ph idx="1"/>',
+            p("Kartlägg", num()) +
+              p("Intervjuer", num(1, ' type="alphaLcPeriod"')) +
+              p("Enkät", num(1)) +
+              p("Bygg", num()) +
+              p("Testa", '<a:pPr lvl="1"/>') +
+              p("Lansera", num()),
+          ) +
+          sp('<p:ph idx="2"/>', p("Fortsätt", num(0, ' startAt="4"')) + p("Avsluta", num())),
+      ),
+    ),
+  });
+  const { markdown } = await convertPptx(zip);
+  expect(markdown).toBe(
+    "## Bild 1: Plan\n\n1. Kartlägg\n   1. Intervjuer\n   2. Enkät\n2. Bygg\n   - Testa\n3. Lansera\n\n4. Fortsätt\n5. Avsluta",
+  );
+});

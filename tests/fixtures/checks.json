@@ -13,7 +13,7 @@
   "02-offert-sidhuvud.docx": {
     "must_contain": [
       "# Offert AI Discovery",
-      "Ledningsgrupp",
+      "- Intervjuer med nyckelpersoner\n  - Ledningsgrupp\n  - Produktion och lager\n- Statusrapport",
       "| Intervjuer | 16 | 19 200 kr |",
       "*Moms tillkommer.*"
     ],
@@ -136,5 +136,13 @@
       "19800101"
     ],
     "tests": "Hidden sheet, hidden row and hidden column are left out, as hidden slides are in pptx"
+  },
+  "14-nastlade-listor.docx": {
+    "must_contain": [
+      "1. Förbered workshop\n   1. Boka lokal i Lerum\n   2. Skicka inbjudan\n2. Genomför workshop",
+      "- Tid\n  - Semestrar i juli\n    - Gäller även konsulter\n- Budget",
+      "1. Sammanställ svar\n   1. Per avdelning\n   2. Per roll"
+    ],
+    "tests": "Nested lists by numbering level (Tab in Word) and by List Number 2 style, indented under their parent item"
   }
 }
