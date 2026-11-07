@@ -307,5 +307,24 @@ checks["12-lankar.docx"] = {
                      "- Stadgarna: [stadgar 2026](https://example.se/stadgar?ar=2026)"],
     "tests": "External hyperlinks in a paragraph and a list item, URL with query string"}
 
+# 13 xlsx: hidden sheet, row and column must stay out of the output
+wb = Workbook()
+ws = wb.active; ws.title = "Deltagare"
+ws.append(["Namn", "Personnummer", "Ort"])
+ws.append(["Åsa Lindqvist", "19800101-0000", "Lerum"])
+ws.append(["Dold Rad", "19900101-0000", "Alingsås"])
+ws.append(["Jörgen Öberg", "19700101-0000", "Floda"])
+ws.row_dimensions[3].hidden = True
+ws.column_dimensions["B"].hidden = True
+ws2 = wb.create_sheet("Löner")
+ws2.append(["Namn", "Månadslön"])
+ws2.append(["Åsa Lindqvist", 41000])
+ws2.sheet_state = "hidden"
+wb.save(OUT / "13-dolda-delar.xlsx")
+checks["13-dolda-delar.xlsx"] = {
+    "must_contain": ["## Deltagare", "| Åsa Lindqvist | Lerum |", "| Jörgen Öberg | Floda |"],
+    "must_not_contain": ["Löner", "Månadslön", "41", "Dold Rad", "Personnummer", "19800101"],
+    "tests": "Hidden sheet, hidden row and hidden column are left out, as hidden slides are in pptx"}
+
 (OUT / "checks.json").write_text(json.dumps(checks, ensure_ascii=False, indent=2), encoding="utf-8")
 print("\n".join(sorted(p.name for p in OUT.iterdir())))

@@ -1,4 +1,6 @@
-// Excel (.xlsx) via SheetJS: one ## section per non-empty sheet. Single-cell
+// Excel (.xlsx) via SheetJS: one ## section per non-empty visible sheet.
+// Hidden sheets, rows and columns are left out, as hidden slides are in pptx:
+// someone hid them on purpose and they should not reach an AI chat unseen. Single-cell
 // rows above the first real row (titles) become text, the rest one table.
 // Cells show what Excel shows, in Swedish: dates as yyyy-mm-dd, decimal comma.
 import * as XLSX from "xlsx";
@@ -26,17 +28,22 @@ function shown(c: XLSX.CellObject | undefined, formulas: { count: number }): str
 }
 
 export async function convertXlsx(bytes: Uint8Array): Promise<ConvertResult> {
-  const book = XLSX.read(bytes, { cellNF: true, cellFormula: true, sheetStubs: true });
+  // cellStyles brings the hidden flags of rows and columns.
+  const book = XLSX.read(bytes, { cellNF: true, cellFormula: true, sheetStubs: true, cellStyles: true });
+  const visible = book.SheetNames.filter((_, i) => !book.Workbook?.Sheets?.[i]?.Hidden);
   const formulas = { count: 0 };
   const sections: string[] = [];
-  for (const name of book.SheetNames) {
+  for (const name of visible) {
     const sheet = book.Sheets[name];
+    const hiddenRows = sheet["!rows"] ?? [];
+    const hiddenCols = sheet["!cols"] ?? [];
     if (!sheet["!ref"]) continue;
     const range = XLSX.utils.decode_range(sheet["!ref"]);
     const rows: string[][] = [];
     for (let r = range.s.r; r <= range.e.r; r++) {
+      if (hiddenRows[r]?.hidden) continue;
       const row: string[] = [];
-      for (let c = range.s.c; c <= range.e.c; c++) row.push(shown(sheet[XLSX.utils.encode_cell({ r, c })], formulas).trim());
+      for (let c = range.s.c; c <= range.e.c; c++) if (!hiddenCols[c]?.hidden) row.push(shown(sheet[XLSX.utils.encode_cell({ r, c })], formulas).trim());
       if (row.some(Boolean)) rows.push(row);
     }
     if (rows.length === 0) continue;
@@ -51,5 +58,5 @@ export async function convertXlsx(bytes: Uint8Array): Promise<ConvertResult> {
   const warnings: Warning[] = formulas.count
     ? [{ code: "formula_without_value", message: `${formulas.count} formler saknar sparat värde och visas som formel. Öppna och spara filen i Excel för att få med värdena.` }]
     : [];
-  return { markdown: sections.join("\n\n"), warnings, meta: { format: "xlsx", sheets: book.SheetNames } };
+  return { markdown: sections.join("\n\n"), warnings, meta: { format: "xlsx", sheets: visible } };
 }

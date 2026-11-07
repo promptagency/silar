@@ -120,5 +120,21 @@
       "- Stadgarna: [stadgar 2026](https://example.se/stadgar?ar=2026)"
     ],
     "tests": "External hyperlinks in a paragraph and a list item, URL with query string"
+  },
+  "13-dolda-delar.xlsx": {
+    "must_contain": [
+      "## Deltagare",
+      "| Åsa Lindqvist | Lerum |",
+      "| Jörgen Öberg | Floda |"
+    ],
+    "must_not_contain": [
+      "Löner",
+      "Månadslön",
+      "41",
+      "Dold Rad",
+      "Personnummer",
+      "19800101"
+    ],
+    "tests": "Hidden sheet, hidden row and hidden column are left out, as hidden slides are in pptx"
   }
 }
