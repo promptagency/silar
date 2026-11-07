@@ -10,7 +10,7 @@ Silar is a standalone product with its own repo, domain and release. It shares n
 - PWA with a service worker that precaches the app shell and caches parser chunks on first use. It must never cache user files or conversion results
 - Hosting: Cloudflare Pages, canonical domain `silar.app`
 - Analytics: self-hosted Plausible, page views only, passed through one small Cloudflare Function the same way Skrubba does it. No third-party script on the page
-- Reference only: Skrubba at `/Users/mikael.quick/Documents/Projects/github/skrubba` has its own readers for Word, Excel, PDF and mail, a Web Worker setup, a PWA config and a Plausible Cloudflare Function. Read them for patterns and pitfalls before writing the equivalent here. Copy small pieces if they fit, never import from that repo and never link the two projects
+- Reference only: Skrubba at `../skrubba` (a sibling checkout) has its own readers for Word, Excel, PDF and mail, a Web Worker setup, a PWA config and a Plausible Cloudflare Function. Read them for patterns and pitfalls before writing the equivalent here. Copy small pieces if they fit, never import from that repo and never link the two projects
 - Parsers, each lazy-loaded with dynamic `import()` only when a file of that type is opened. Every parser must run in both the browser and Node, because `src/convert/` is tested in Vitest on Node and will later be used in Skrubba and an n8n node:
   - docx: `mammoth` (to HTML) + `turndown` (to Markdown), with GFM table support
   - xlsx: SheetJS community edition, installed from the pinned SheetJS CDN tarball URL in package.json (the npm registry version is outdated). If the Cloudflare Pages build cannot fetch it, vendor the `.tgz` into `vendor/`

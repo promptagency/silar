@@ -12,7 +12,7 @@ Phases are ordered by risk. PDF is the part most likely to sink the product, so 
 ## Phases
 
 ### Phase 0 – Setup
-- [x] Read Skrubba's document readers, worker setup, PWA config and Plausible Cloudflare Function at `/Users/mikael.quick/Documents/Projects/github/skrubba`. Write `docs/decisions/0001-patterns-from-skrubba.md` listing which patterns are borrowed. No code dependency between the repos
+- [x] Read Skrubba's document readers, worker setup, PWA config and Plausible Cloudflare Function at `../skrubba` (a sibling checkout). Write `docs/decisions/0001-patterns-from-skrubba.md` listing which patterns are borrowed. No code dependency between the repos
 - [x] Scaffold Vite + React 19 + TypeScript, plain CSS, PWA plugin
 - [x] Fixtures in `tests/fixtures/`, `tests/fixtures/private/` in `.gitignore` (done at handoff)
 - [x] Vitest harness that loops over `checks.json`, applies the machine-checkable keys and ignores the rest (`ideal`, `acceptable`, `should_handle`, `fail_if` are for manual review). All failing is expected
