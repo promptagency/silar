@@ -3,7 +3,11 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { parse, sniff } from "../src/convert/csv.ts";
 import { detect } from "../src/convert/detect.ts";
+import { strFromU8, strToU8, unzipSync, zipSync } from "fflate";
+import * as XLSX from "xlsx";
 import { convert } from "../src/convert/index.ts";
+import { table } from "../src/convert/markdown.ts";
+import { convertXlsx } from "../src/convert/xlsx.ts";
 
 const bytes = (s: string) => new TextEncoder().encode(s);
 const fixture = (name: string) => new Uint8Array(readFileSync(new URL(`./fixtures/${name}`, import.meta.url)));
@@ -50,5 +54,22 @@ describe("csv", () => {
     expect(sniff("a,b,c\n1,2,3\n")).toBe(",");
     expect(sniff("a;b\n1,5;2,5\n")).toBe(";");
     expect(sniff("a\tb\n1\t2\n")).toBe("\t");
+  });
+});
+
+describe("big inputs", () => {
+  it("builds a table of 200 000 rows (a spread of that many arguments overflows the stack)", () => {
+    const rows = Array.from({ length: 200_000 }, (_, i) => [String(i), "x"]);
+    expect(table(rows).split("\n")).toHaveLength(200_001);
+  });
+
+  it("reads only the cells an xlsx sheet has, even when it claims the whole grid", async () => {
+    // Written small, then the <dimension> tag is made to claim A1:XFD1048576, as some files do.
+    const sheet = XLSX.utils.aoa_to_sheet([["Namn", "Ort"], ["Åsa", "Lerum"]]);
+    const files = unzipSync(XLSX.write({ SheetNames: ["S"], Sheets: { S: sheet } }, { type: "buffer", bookType: "xlsx" }));
+    const xml = strFromU8(files["xl/worksheets/sheet1.xml"]);
+    files["xl/worksheets/sheet1.xml"] = strToU8(xml.replace(/<dimension ref="[^"]*"/, '<dimension ref="A1:XFD1048576"'));
+    const { markdown } = await convertXlsx(zipSync(files));
+    expect(markdown).toBe("## S\n\n| Namn | Ort |\n| --- | --- |\n| Åsa | Lerum |");
   });
 });

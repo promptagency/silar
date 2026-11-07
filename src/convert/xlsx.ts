@@ -27,6 +27,27 @@ function shown(c: XLSX.CellObject | undefined, formulas: { count: number }): str
   return c.t === "z" ? "" : (c.w ?? String(c.v ?? ""));
 }
 
+/**
+ * The range the sheet's cells actually span. Not !ref: that comes from the
+ * file's <dimension> tag, which can claim the whole grid (A1:XFD1048576,
+ * 17 billion cells) for a sheet with two cells in it.
+ */
+function usedRange(sheet: XLSX.WorkSheet): XLSX.Range | null {
+  let range: XLSX.Range | null = null;
+  for (const key of Object.keys(sheet)) {
+    if (key.startsWith("!")) continue;
+    const { r, c } = XLSX.utils.decode_cell(key);
+    if (!range) range = { s: { r, c }, e: { r, c } };
+    else {
+      range.s.r = Math.min(range.s.r, r);
+      range.s.c = Math.min(range.s.c, c);
+      range.e.r = Math.max(range.e.r, r);
+      range.e.c = Math.max(range.e.c, c);
+    }
+  }
+  return range;
+}
+
 export async function convertXlsx(bytes: Uint8Array): Promise<ConvertResult> {
   // cellStyles brings the hidden flags of rows and columns.
   const book = XLSX.read(bytes, { cellNF: true, cellFormula: true, sheetStubs: true, cellStyles: true });
@@ -37,8 +58,8 @@ export async function convertXlsx(bytes: Uint8Array): Promise<ConvertResult> {
     const sheet = book.Sheets[name];
     const hiddenRows = sheet["!rows"] ?? [];
     const hiddenCols = sheet["!cols"] ?? [];
-    if (!sheet["!ref"]) continue;
-    const range = XLSX.utils.decode_range(sheet["!ref"]);
+    const range = usedRange(sheet);
+    if (!range) continue;
     const rows: string[][] = [];
     for (let r = range.s.r; r <= range.e.r; r++) {
       if (hiddenRows[r]?.hidden) continue;
