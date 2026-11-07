@@ -78,7 +78,5 @@ Checkpoint: ask before connecting `silar.app` and deploying to production.
 - HTTP API, n8n node, npm package publishing
 
 ## Open questions
-- Repo name, suggested `promptagency/silar`
-- Open source from the start, same licence and licence holder as Skrubba
 - Target size for the initial page load
-- Whether `silar.app` is registered and whether a promptagency.se subdomain should redirect to it
+- Whether a promptagency.se subdomain should redirect to `silar.app`

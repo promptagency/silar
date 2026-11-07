@@ -50,7 +50,7 @@ npm run build      # build till dist/ och storleksrapport per fil
 
 `node scripts/show.ts <filer>` skriver ut Markdown och varningar för en eller flera filer.
 
-Byggd av [Prompt Agency AB](https://promptagency.se). Licens: inte bestämd än.
+Byggd av [Prompt Agency AB](https://promptagency.se). Öppen källkod under [MIT-licensen](LICENSE).
 
 ---
 
@@ -91,4 +91,4 @@ npm run build      # build to dist/ and a size report per file
 
 `node scripts/show.ts <files>` prints the Markdown and warnings for one or more files.
 
-Built by [Prompt Agency AB](https://promptagency.se). Licence: not decided yet.
+Built by [Prompt Agency AB](https://promptagency.se). Open source under the [MIT licence](LICENSE).
