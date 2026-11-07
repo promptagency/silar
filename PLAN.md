@@ -30,11 +30,11 @@ Checkpoint: show the repo structure, the failing test report and the preview URL
 Checkpoint: fixtures 01 to 04 plus the two new ones pass. Show the Markdown output of each.
 
 ### Phase 2 – PDF, text and structure
-- [ ] Text extraction with pdf.js, lines grouped from text items by position
-- [ ] Per-page text check, `no_text_layer` for fully scanned files, `page_without_text` with page number for mixed files
-- [ ] Running header, footer and page number removal: lines in the top or bottom band that repeat on most pages after digits are normalised. Skip for single-page documents
-- [ ] Heading detection from font size relative to the body text median
-- [ ] Paragraph joining across line and page breaks
+- [x] Text extraction with pdf.js, lines grouped from text items by position
+- [x] Per-page text check, `no_text_layer` for fully scanned files, `page_without_text` with page number for mixed files
+- [x] Running header, footer and page number removal: lines in the top or bottom band that repeat on most pages after digits are normalised. Skip for single-page documents
+- [x] Heading detection from font size relative to the body text median
+- [x] Paragraph joining across line and page breaks
 Checkpoint: fixtures 06, 09 and 10 pass. Show the output of 06 next to the PDF.
 
 ### Phase 3 – PDF, columns and tables
