@@ -5,5 +5,8 @@ export default defineConfig({
   testDir: "tests/e2e",
   use: { baseURL: "http://localhost:4173" },
   webServer: { command: "npm run build && npm run preview -- --port 4173 --strictPort", url: "http://localhost:4173", reuseExistingServer: false },
-  projects: [{ name: "chromium", use: devices["Desktop Chrome"] }],
+  projects: [
+    { name: "chromium", use: devices["Desktop Chrome"] },
+    { name: "webkit", use: devices["Desktop Safari"] },
+  ],
 });

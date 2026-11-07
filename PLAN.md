@@ -49,15 +49,15 @@ Checkpoint: fixtures 07 and 08 pass. Show both outputs side by side with the PDF
 Checkpoint: fixture 05 passes. Show output.
 
 ### Phase 5 – Interface
-- [ ] `convert()` running in a Web Worker, UI talks to it by message
-- [ ] Tokens from `docs/design.md` as CSS custom properties, fonts self-hosted via @fontsource
-- [ ] Layout and branding per `docs/design.md`, logo and favicon from `docs/assets/`
-- [ ] Drop zone and file picker, one file at a time
-- [ ] Progress state while a parser loads the first time
-- [ ] Markdown preview (raw text), copy button, download as `.md`
-- [ ] Character count and approximate token count, labelled as approximate
-- [ ] Warnings shown in Swedish above the result
-- [ ] Short text explaining that the file never leaves the computer
+- [x] `convert()` running in a Web Worker, UI talks to it by message
+- [x] Tokens from `docs/design.md` as CSS custom properties, fonts self-hosted via @fontsource
+- [x] Layout and branding per `docs/design.md`, logo and favicon from `docs/assets/`
+- [x] Drop zone and file picker, one file at a time
+- [x] Progress state while a parser loads the first time
+- [x] Markdown preview (raw text), copy button, download as `.md`
+- [x] Character count and approximate token count, labelled as approximate
+- [x] Warnings shown in Swedish above the result
+- [x] Short text explaining that the file never leaves the computer
 Checkpoint: show the working flow on the preview URL, desktop and phone width.
 
 ### Phase 6 – Launch preparation
