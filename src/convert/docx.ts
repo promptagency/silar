@@ -1,5 +1,6 @@
 // Word (.docx) via mammoth (to HTML) and turndown (to Markdown). Mammoth
 // leaves out headers and footers on its own; images are dropped unread.
+import { createDocument } from "@mixmark-io/domino";
 import mammoth from "mammoth";
 import TurndownService from "turndown";
 import { cell } from "./markdown.ts";
@@ -63,5 +64,7 @@ export async function convertDocx(bytes: Uint8Array): Promise<ConvertResult> {
     styleMap: STYLE_MAP,
     convertImage: mammoth.images.imgElement(async () => ({ src: "" })),
   });
-  return { markdown: turndown().turndown(promoteHeadings(value)), warnings: [], meta: { format: "docx" } };
+  // Parsed with domino, not turndown's DOMParser: a Web Worker has no DOMParser.
+  const body = createDocument(promoteHeadings(value)).body;
+  return { markdown: turndown().turndown(body), warnings: [], meta: { format: "docx" } };
 }

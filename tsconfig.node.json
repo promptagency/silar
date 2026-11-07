@@ -5,6 +5,7 @@
     "lib": ["ES2023", "DOM"],
     "types": ["node"],
     "skipLibCheck": true,
+    "paths": { "@mixmark-io/domino": ["./src/convert/domino.d.ts"] },
     "module": "nodenext",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
