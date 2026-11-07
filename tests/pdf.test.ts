@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { removeFurniture } from "../src/convert/pdf/furniture.ts";
 import { bodySize, headingLevels } from "../src/convert/pdf/headings.ts";
-import { groupLines, joinText, type Line } from "../src/convert/pdf/layout.ts";
+import { groupLines, type Item, joinText, type Line, readingOrder, tableRows } from "../src/convert/pdf/layout.ts";
 
 const line = (text: string, y: number, size = 10): Line => ({ text, x: 50, y, size });
 const H = 842;
@@ -58,6 +58,41 @@ describe("headings", () => {
     expect([...headingLevels(lines, body)]).toEqual([
       [18, 1],
       [13, 2],
+    ]);
+  });
+});
+
+const item = (str: string, x: number, y: number, width: number, size = 10): Item => ({ str, x, y, width, size });
+
+describe("readingOrder", () => {
+  const W = 595;
+  const prose = (y: number) => [item(`vänster ${y}`, 60, y, 200), item(`höger ${y}`, 315, y, 200)];
+
+  it("reads the left column before the right one, under a full-width title", () => {
+    const items = [item("Titel över båda spalterna", 60, 760, 400, 18), ...[700, 686, 672, 658, 644].flatMap(prose)];
+    const order = readingOrder(items, W).flatMap(groupLines).map((l) => l.text);
+    expect(order).toEqual(["Titel över båda spalterna", ...[700, 686, 672, 658, 644].map((y) => `vänster ${y}`), ...[700, 686, 672, 658, 644].map((y) => `höger ${y}`)]);
+  });
+
+  it("leaves table rows and single-column pages alone", () => {
+    const rowsOf = (y: number) => [item("Skola", 70, y, 60, 9), item("412", 197, y, 17, 9), item("91 %", 268, y, 23, 9), item("Kommentar", 367, y, 53, 9)];
+    const items = [700, 683, 666, 649, 632].flatMap(rowsOf);
+    expect(readingOrder(items, W)).toEqual([items]);
+  });
+});
+
+describe("tableRows", () => {
+  it("puts cells under shared column starts and leaves gaps empty", () => {
+    expect(
+      tableRows([
+        [{ x: 70, text: "Skola" }, { x: 197, text: "Elever" }, { x: 367, text: "Kommentar" }],
+        [{ x: 70, text: "Hulan" }, { x: 198, text: "287" }],
+        [{ x: 71, text: "Floda" }, { x: 197, text: "530" }, { x: 368, text: "Ny rektor" }],
+      ]),
+    ).toEqual([
+      ["Skola", "Elever", "Kommentar"],
+      ["Hulan", "287", ""],
+      ["Floda", "530", "Ny rektor"],
     ]);
   });
 });

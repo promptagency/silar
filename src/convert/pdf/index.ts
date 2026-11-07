@@ -7,7 +7,8 @@
 import type { ConvertResult, Warning } from "../types.ts";
 import { removeFurniture } from "./furniture.ts";
 import { bodySize, headingLevels } from "./headings.ts";
-import { groupLines, type Item, joinText, type Line, median } from "./layout.ts";
+import { table } from "../markdown.ts";
+import { type Cell, groupLines, type Item, joinText, type Line, median, readingOrder, tableRows } from "./layout.ts";
 
 type PdfJs = typeof import("pdfjs-dist");
 
@@ -17,7 +18,11 @@ const LEGACY = "pdfjs-dist/legacy/build/pdf.mjs";
 const inNode = !!(globalThis as { process?: { versions?: { node?: string } } }).process?.versions?.node && !("window" in globalThis) && !("WorkerGlobalScope" in globalThis);
 const loadPdfJs = (): Promise<PdfJs> => (inNode ? import(/* @vite-ignore */ LEGACY) : import("pdfjs-dist"));
 
-type Block = { kind: "heading"; level: number; text: string } | { kind: "para"; text: string } | { kind: "missing"; page: number };
+type Block =
+  | { kind: "heading"; level: number; text: string }
+  | { kind: "para"; text: string }
+  | { kind: "table"; rows: Cell[][]; text: string[] }
+  | { kind: "missing"; page: number };
 
 const SENTENCE_END = /[.!?:;»”")\]]$/;
 
@@ -45,7 +50,7 @@ export async function convertPdf(bytes: Uint8Array): Promise<ConvertResult> {
         const [a, b, , , x, y] = it.transform as number[];
         items.push({ str: it.str, x, y, width: it.width, size: Math.round(Math.hypot(a, b) * 2) / 2 });
       }
-      const lines = groupLines(items);
+      const lines = readingOrder(items, page.getViewport({ scale: 1 }).width).flatMap(groupLines);
       // Only text-less pages are checked for images: that is what a scan looks like.
       const scanned = lines.length === 0 && (await page.getOperatorList()).fnArray.some((op) => images.has(op));
       pages.push({ lines, height: page.getViewport({ scale: 1 }).height, scanned });
@@ -77,12 +82,19 @@ export async function convertPdf(bytes: Uint8Array): Promise<ConvertResult> {
       for (const line of lines) {
         const level = levels.get(line.size);
         const last = blocks.at(-1);
-        const near = prev !== null && prev.y - line.y <= lineGap * 1.3;
+        const drop = prev === null ? null : prev.y - line.y;
+        // A new page, or a jump up to the next column: continue only an unfinished sentence.
+        const fresh = drop === null || drop <= 0;
+        const near = !fresh && drop! <= lineGap * 1.3;
         if (level) {
           if (last?.kind === "heading" && last.level === level && near) last.text = joinText(last.text, line.text);
           else blocks.push({ kind: "heading", level, text: line.text });
-        } else if (last?.kind === "para" && (prev === null ? !SENTENCE_END.test(last.text) : near && levels.get(prev.size) === undefined)) {
-          // Same paragraph: the next line, or the first line of a page continuing an unfinished sentence.
+        } else if (line.cells) {
+          if (last?.kind === "table" && prev?.cells && !fresh) {
+            last.rows.push(line.cells);
+            last.text.push(line.text);
+          } else blocks.push({ kind: "table", rows: [line.cells], text: [line.text] });
+        } else if (last?.kind === "para" && (fresh ? !SENTENCE_END.test(last.text) : near && !levels.has(prev!.size) && !prev!.cells)) {
           last.text = joinText(last.text, line.text);
         } else blocks.push({ kind: "para", text: line.text });
         prev = line;
@@ -90,7 +102,13 @@ export async function convertPdf(bytes: Uint8Array): Promise<ConvertResult> {
     });
 
     const markdown = blocks
-      .map((b) => (b.kind === "heading" ? `${"#".repeat(b.level)} ${b.text}` : b.kind === "para" ? b.text : `<!-- Sida ${b.page} saknar text -->`))
+      .map((b) => {
+        if (b.kind === "heading") return `${"#".repeat(b.level)} ${b.text}`;
+        if (b.kind === "para") return b.text;
+        // A lone wide-spaced line is not a table.
+        if (b.kind === "table") return b.rows.length > 1 ? table(tableRows(b.rows)) : b.text[0];
+        return `<!-- Sida ${b.page} saknar text -->`;
+      })
       .join("\n\n");
     return { markdown, warnings, meta };
   } finally {

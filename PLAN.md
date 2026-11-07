@@ -38,8 +38,8 @@ Checkpoint: fixtures 01 to 04 plus the two new ones pass. Show the Markdown outp
 Checkpoint: fixtures 06, 09 and 10 pass. Show the output of 06 next to the PDF.
 
 ### Phase 3 – PDF, columns and tables
-- [ ] Two-column detection so columns are read in order
-- [ ] Tables: best effort only, each row kept on one line with cell values in order
+- [x] Two-column detection so columns are read in order
+- [x] Tables: best effort only, each row kept on one line with cell values in order
 Checkpoint: fixtures 07 and 08 pass. Show both outputs side by side with the PDFs and stop. Micke decides whether table handling is good enough for the MVP or needs more work before the UI.
 
 ### Phase 4 – pptx
