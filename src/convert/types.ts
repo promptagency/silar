@@ -19,3 +19,6 @@ export interface ConvertResult {
 }
 
 export type ConvertInput = File | { name: string; data: ArrayBuffer };
+
+/** Above this size the UI says "Stor fil" and convert() adds a large_file warning. */
+export const LARGE_FILE_BYTES = 25 * 1024 * 1024;

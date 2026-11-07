@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import type { ConvertResult } from "../convert/types.ts";
+import { type ConvertResult, LARGE_FILE_BYTES } from "../convert/types.ts";
 import { convertFile } from "./convertFile.ts";
 import { FileIcon, LockIcon, WarningIcon } from "./icons.tsx";
 import { Result } from "./Result.tsx";
 import { formatName, notices } from "./text.ts";
 
 const ACCEPT = ".docx,.xlsx,.csv,.pptx,.pdf";
-const LARGE_FILE_BYTES = 25 * 1024 * 1024;
 
 type State =
   | { kind: "idle" }

@@ -1,11 +1,10 @@
 // convert(file) -> { markdown, warnings, meta }. Each parser is loaded with
 // import() the first time a file of its format comes in.
 import { detect, type Format } from "./detect.ts";
-import type { ConvertInput, ConvertResult, Warning } from "./types.ts";
+import { type ConvertInput, type ConvertResult, LARGE_FILE_BYTES, type Warning } from "./types.ts";
 
 export type { ConvertInput, ConvertResult, Warning, WarningCode } from "./types.ts";
 
-const LARGE_FILE_BYTES = 25 * 1024 * 1024;
 
 const PARSERS: Record<Format, () => Promise<(bytes: Uint8Array) => Promise<ConvertResult>>> = {
   docx: () => import("./docx.ts").then((m) => m.convertDocx),
