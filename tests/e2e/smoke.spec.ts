@@ -51,7 +51,8 @@ test("a mixed PDF shows the page warning above the result", async ({ page }) => 
   await expect(page.getByLabel("Resultat i Markdown")).toContainText("<!-- Sida 2 saknar text -->");
 });
 
-test("Avbryt stops a conversion and returns to the start", async ({ page, context }) => {
+for (const how of ["Avbryt", "Esc"] as const)
+test(`${how} stops a conversion and returns to the start`, async ({ page, context }) => {
   // Hold back the Word reader so the conversion is still running when Avbryt is pressed.
   await context.route(/\/assets\/docx-[\w-]+\.js$/, async (route) => {
     await new Promise((r) => setTimeout(r, 3000));
@@ -59,7 +60,10 @@ test("Avbryt stops a conversion and returns to the start", async ({ page, contex
   });
   await page.goto("/");
   await page.locator('input[type="file"]').setInputFiles(FIXTURES + "01-protokoll-styrelsemote.docx");
-  await page.getByRole("button", { name: "Avbryt" }).click();
+  const cancel = page.getByRole("button", { name: "Avbryt" });
+  await expect(cancel).toBeVisible();
+  if (how === "Avbryt") await cancel.click();
+  else await page.keyboard.press("Escape");
   await expect(page.getByRole("button", { name: "Välj fil" })).toBeFocused();
   await page.waitForTimeout(3500);
   await expect(page.getByRole("heading", { name: "Silat." })).toHaveCount(0);

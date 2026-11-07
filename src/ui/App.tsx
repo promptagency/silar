@@ -50,6 +50,16 @@ export function App() {
     requestAnimationFrame(() => document.getElementById("choose")?.focus());
   }
 
+  // Esc cancels a conversion, same as Avbryt.
+  useEffect(() => {
+    if (!busy) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") abort.current?.abort();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [busy]);
+
   // A file can be dropped anywhere on the page.
   useEffect(() => {
     let depth = 0;
