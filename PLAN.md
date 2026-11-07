@@ -43,9 +43,9 @@ Checkpoint: fixtures 06, 09 and 10 pass. Show the output of 06 next to the PDF.
 Checkpoint: fixtures 07 and 08 pass. Show both outputs side by side with the PDFs and stop. Micke decides whether table handling is good enough for the MVP or needs more work before the UI.
 
 ### Phase 4 – pptx
-- [ ] Slide order from `presentation.xml` relationships, not file names
-- [ ] One section per slide, title as heading, bullet levels as indented lists, tables as Markdown tables
-- [ ] Speaker notes included under a marked subheading, blank slides skipped
+- [x] Slide order from `presentation.xml` relationships, not file names
+- [x] One section per slide, title as heading, bullet levels as indented lists, tables as Markdown tables
+- [x] Speaker notes included under a marked subheading, blank slides skipped
 Checkpoint: fixture 05 passes. Show output.
 
 ### Phase 5 – Interface

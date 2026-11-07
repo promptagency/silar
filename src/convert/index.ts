@@ -12,8 +12,7 @@ const PARSERS: Record<Format, () => Promise<(bytes: Uint8Array) => Promise<Conve
   xlsx: () => import("./xlsx.ts").then((m) => m.convertXlsx),
   csv: () => import("./csv.ts").then((m) => m.convertCsv),
   pdf: () => import("./pdf/index.ts").then((m) => m.convertPdf),
-  // shortcut: empty output until pptx (Phase 4) exists.
-  pptx: async () => async () => ({ markdown: "", warnings: [], meta: { format: "pptx" } }),
+  pptx: () => import("./pptx.ts").then((m) => m.convertPptx),
 };
 
 function unsupported(legacy?: string): ConvertResult {
