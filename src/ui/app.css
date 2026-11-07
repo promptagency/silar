@@ -96,8 +96,8 @@ nav a:hover {
 }
 
 /* Sections */
-main > section {
-  padding-top: 64px;
+main > section + section {
+  margin-top: 80px;
 }
 
 main > section > h2 {
@@ -106,7 +106,7 @@ main > section > h2 {
 }
 
 .hero {
-  padding-top: 56px;
+  margin-top: 56px;
 }
 
 .hero h1 {
@@ -305,7 +305,7 @@ main > section > h2 {
   overflow: hidden;
 }
 
-.result :focus-visible {
+.result :focus-visible:not([tabindex="-1"]) {
   box-shadow: 0 0 0 2px #fff;
 }
 
@@ -353,6 +353,9 @@ main > section > h2 {
   line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-word;
+  /* Show the characters as copied: no "<!--" drawn as an arrow. */
+  font-variant-ligatures: none;
+  font-feature-settings: "liga" 0, "calt" 0;
 }
 
 .markdown.empty {
@@ -494,7 +497,11 @@ main > section > h2 {
   }
 
   .hero {
-    padding-top: 32px;
+    margin-top: 32px;
+  }
+
+  main > section + section {
+    margin-top: 56px;
   }
 
   .sub {
