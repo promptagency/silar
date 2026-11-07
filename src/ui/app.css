@@ -573,3 +573,9 @@ main > section > h2 {
     flex: 1;
   }
 }
+
+/* Long Swedish compounds ("talaranteckningar") in narrow format cards. */
+.formats p {
+  hyphens: auto;
+  overflow-wrap: break-word;
+}
