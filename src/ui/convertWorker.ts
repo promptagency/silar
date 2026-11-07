@@ -2,7 +2,7 @@
 // ends it when the result arrives or on timeout, so nothing from the file
 // outlives the conversion. Nothing here touches the network.
 import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
-import { detect } from "../convert/detect.ts";
+import { isPdf } from "../convert/detect.ts";
 import { convert } from "../convert/index.ts";
 import type { FromWorker, ToWorker } from "./protocol.ts";
 
@@ -13,7 +13,8 @@ self.onmessage = async (e: MessageEvent<ToWorker>) => {
   try {
     // pdf.js runs its parser in a worker of its own, nested in this one:
     // imported straight into a worker, pdf.js takes over its messages.
-    if ((await detect(name, new Uint8Array(data))).format === "pdf") {
+    // The same %PDF- check detect() uses; convert() then picks the parser.
+    if (isPdf(new Uint8Array(data))) {
       const pdfjs = await import("pdfjs-dist");
       pdfjs.GlobalWorkerOptions.workerPort ??= new Worker(pdfWorkerUrl, { type: "module" });
     }

@@ -13,7 +13,7 @@ const EXT: Record<string, Format> = { docx: "docx", xlsx: "xlsx", pptx: "pptx", 
 const LEGACY = new Set(["doc", "xls", "ppt"]);
 
 const isZip = (b: Uint8Array) => b[0] === 0x50 && b[1] === 0x4b && b[2] === 0x03 && b[3] === 0x04;
-const isPdf = (b: Uint8Array) => new TextDecoder("latin1").decode(b.subarray(0, 1024)).includes("%PDF-");
+export const isPdf = (b: Uint8Array) => new TextDecoder("latin1").decode(b.subarray(0, 1024)).includes("%PDF-");
 
 async function zipFormat(bytes: Uint8Array): Promise<Format | null> {
   const { unzipSync } = await import("fflate");

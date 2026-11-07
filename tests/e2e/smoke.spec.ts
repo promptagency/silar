@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { expect, type Page, test } from "@playwright/test";
 
 const FIXTURES = new URL("../fixtures/", import.meta.url).pathname;
@@ -67,4 +68,22 @@ test(`${how} stops a conversion and returns to the start`, async ({ page, contex
   await expect(page.getByRole("button", { name: "Välj fil" })).toBeFocused();
   await page.waitForTimeout(3500);
   await expect(page.getByRole("heading", { name: "Silat." })).toHaveCount(0);
+});
+
+test("a file dropped anywhere on the page converts, also a second time", async ({ page }) => {
+  const csv = readFileSync(FIXTURES + "04-export-svensk-excel.csv");
+  const drop = () =>
+    page.evaluate(async (bytes) => {
+      const dt = new DataTransfer();
+      dt.items.add(new File([new Uint8Array(bytes)], "export.csv"));
+      for (const type of ["dragenter", "dragover", "drop"]) document.body.dispatchEvent(new DragEvent(type, { dataTransfer: dt, bubbles: true }));
+    }, [...csv]);
+  await page.goto("/");
+  // React may render after the load event; the drop listener is attached once the app is up.
+  await expect(page.getByRole("button", { name: "Välj fil" })).toBeVisible();
+  await drop();
+  await expect(page.getByLabel("Resultat i Markdown")).toContainText("| Flytväst barn | 12 | 449,50 |");
+  await page.getByRole("button", { name: "Sila en till" }).first().click();
+  await drop();
+  await expect(page.getByLabel("Resultat i Markdown")).toContainText("| Flytväst barn | 12 | 449,50 |");
 });

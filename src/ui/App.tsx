@@ -23,11 +23,13 @@ export function App() {
   const abort = useRef<AbortController | null>(null);
   const busy = state.kind === "working";
 
+  // Busy check on the ref, not state: it is set at once, and keeps handle()
+  // correct when called from the drop listener below, which is attached once.
   async function handle(file: File | undefined) {
-    if (!file || busy) return;
+    if (!file || abort.current) return;
     const format = formatName(file.name);
-    setState({ kind: "working", name: file.name, reader: format && !loadedFormats.has(format) ? format : null, large: file.size > LARGE_FILE_BYTES });
     abort.current = new AbortController();
+    setState({ kind: "working", name: file.name, reader: format && !loadedFormats.has(format) ? format : null, large: file.size > LARGE_FILE_BYTES });
     const outcome = await convertFile(file, abort.current.signal);
     abort.current = null;
     if (outcome.kind === "cancelled") return again();
@@ -93,7 +95,7 @@ export function App() {
       window.removeEventListener("dragover", over);
       window.removeEventListener("drop", drop);
     };
-  });
+  }, []);
 
   return (
     <>
