@@ -7,7 +7,7 @@
   From document to AI-ready text, without the file leaving your computer.
 </p>
 
-<p align="center"><a href="https://silar.pages.dev">silar.pages.dev</a> (snart / soon <code>silar.app</code>)</p>
+<p align="center"><a href="https://silar.app">silar.app</a></p>
 
 [Svenska](#svenska) · [English](#english)
 
