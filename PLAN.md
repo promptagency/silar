@@ -61,11 +61,11 @@ Checkpoint: fixture 05 passes. Show output.
 Checkpoint: show the working flow on the preview URL, desktop and phone width.
 
 ### Phase 6 – Launch preparation
-- [ ] Playwright smoke test: convert one fixture per format and assert that every network request after load is same-origin
-- [ ] Page view via Cloudflare Function to Plausible, copied from Skrubba
-- [ ] Service worker verified to cache only app shell and parser chunks, never user data
-- [ ] Bundle size report per chunk, initial load must contain no parser
-- [ ] README in Swedish and English
+- [x] Playwright smoke test: convert one fixture per format and assert that every network request after load is same-origin
+- [x] Page view via Cloudflare Function to Plausible, copied from Skrubba
+- [x] Service worker verified to cache only app shell and parser chunks, never user data
+- [x] Bundle size report per chunk, initial load must contain no parser
+- [x] README in Swedish and English
 Checkpoint: ask before connecting `silar.app` and deploying to production.
 
 ## Out of scope

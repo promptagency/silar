@@ -74,10 +74,10 @@ docs/decisions/
 
 ## Commands
 - `npm run dev` Vite dev server (no CSP meta tag in dev)
-- `npm run build` type check + production build to `dist/`, Vite prints size per chunk
-- `npm test` Vitest: `tests/convert.test.ts` (checks.json), `tests/parsers.test.ts` (Node parser gate), `tests/headers.test.ts` (CSP in `_headers` = `vite.config.ts`)
+- `npm run build` type check + production build to `dist/` + `dist/sw.js`, then `scripts/sizes.ts` prints raw and gzip size per JS/CSS file and fails if a first-load file contains parser code
+- `npm test` Vitest: `tests/convert.test.ts` (checks.json), `tests/parsers.test.ts` (Node parser gate), `tests/headers.test.ts` (CSP in `_headers` = `vite.config.ts`), `tests/sw.test.ts` (service worker precache rules), `tests/event.test.ts` (`functions/api/event.ts`, the Plausible pass-through)
 - `node scripts/show.ts <files>` print `convert()` output and warnings, for checkpoints
-- `npm run test:e2e` Playwright against a fresh build on port 4173 (first time: `npx playwright install chromium`)
+- `npm run test:e2e` Playwright against a fresh build on port 4173 (first time: `npx playwright install chromium webkit`). `tests/e2e/offline.spec.ts` checks the service worker cache holds only built files and works offline (Chromium only)
 - deploy: push to GitHub `promptagency/silar`. Cloudflare Pages project `silar` builds every branch (`npm run build`, output `dist`, Node from `.node-version`). `main` goes to `https://silar.pages.dev`, other branches get preview URLs. No custom domain yet (`silar.app` is not registered)
 
 ## Ask before
