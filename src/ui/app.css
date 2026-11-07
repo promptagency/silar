@@ -230,6 +230,10 @@ main > section > h2 {
   overflow: hidden;
 }
 
+.working .cancel {
+  margin-top: 16px;
+}
+
 .progress span {
   display: block;
   width: 40%;

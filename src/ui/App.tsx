@@ -21,13 +21,17 @@ export function App() {
   const [state, setState] = useState<State>({ kind: "idle" });
   const [dragging, setDragging] = useState(false);
   const input = useRef<HTMLInputElement>(null);
+  const abort = useRef<AbortController | null>(null);
   const busy = state.kind === "working";
 
   async function handle(file: File | undefined) {
     if (!file || busy) return;
     const format = formatName(file.name);
     setState({ kind: "working", name: file.name, reader: format && !loadedFormats.has(format) ? format : null, large: file.size > LARGE_FILE_BYTES });
-    const outcome = await convertFile(file);
+    abort.current = new AbortController();
+    const outcome = await convertFile(file, abort.current.signal);
+    abort.current = null;
+    if (outcome.kind === "cancelled") return again();
     if (outcome.kind === "error") {
       const message =
         outcome.reason === "timeout"
@@ -126,6 +130,9 @@ export function App() {
               <div className="progress" aria-hidden="true">
                 <span />
               </div>
+              <button type="button" className="button outline cancel" onClick={() => abort.current?.abort()}>
+                Avbryt
+              </button>
             </div>
           )}
 
