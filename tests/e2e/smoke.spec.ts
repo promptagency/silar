@@ -86,20 +86,31 @@ test(`${how} stops a conversion and returns to the start`, async ({ page, contex
 
 test("a file dropped anywhere on the page converts, also a second time", async ({ page }) => {
   const csv = readFileSync(FIXTURES + "04-export-svensk-excel.csv");
-  const drop = () =>
+  const drop = (bytes: number[]) =>
     page.evaluate(async (bytes) => {
       const dt = new DataTransfer();
       dt.items.add(new File([new Uint8Array(bytes)], "export.csv"));
       for (const type of ["dragenter", "dragover", "drop"]) document.body.dispatchEvent(new DragEvent(type, { dataTransfer: dt, bubbles: true }));
-    }, [...csv]);
+    }, bytes);
   await page.goto("/");
   // React may render after the load event; the drop listener is attached once the app is up.
   await expect(page.getByRole("button", { name: /^Välj (fil|dokument)$/ })).toBeVisible();
-  await drop();
+  await drop([...csv]);
   await expect(page.getByLabel("Resultat i Markdown")).toContainText("| Flytväst barn | 12 | 449,50 |");
-  await page.getByRole("button", { name: "Sila en till" }).first().click();
-  await drop();
-  await expect(page.getByLabel("Resultat i Markdown")).toContainText("| Flytväst barn | 12 | 449,50 |");
+  // A second file replaces the result directly, no "Sila en till" in between.
+  await drop([...new TextEncoder().encode("Namn;Ort\nÅsa;Lerum\n")]);
+  await expect(page.getByLabel("Resultat i Markdown")).toContainText("| Åsa | Lerum |");
+});
+
+test("desktop: example beside the upload, which stays next to the result", async ({ page, isMobile }) => {
+  test.skip(isMobile, "phones show one column");
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Exempel" })).toBeVisible();
+  await page.locator('input[type="file"]').setInputFiles(FIXTURES + "01-protokoll-styrelsemote.docx");
+  await expect(page.getByRole("heading", { name: "Silat." })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole("heading", { name: "Exempel" })).toBeHidden();
+  await expect(page.getByRole("button", { name: "Välj fil" })).toBeEnabled();
+  await expect(page.getByRole("button", { name: "Sila en till" })).toBeHidden();
 });
 
 test("Så funkar det opens as a modal with the FAQ, Esc closes it and focus returns", async ({ page }) => {

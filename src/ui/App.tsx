@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { type ConvertResult, LARGE_FILE_BYTES } from "../convert/types.ts";
 import { convertFile } from "./convertFile.ts";
 import { HowItWorks } from "./HowItWorks.tsx";
 import { FileIcon, LockIcon, WarningIcon } from "./icons.tsx";
 import { Result } from "./Result.tsx";
-import { formatName, notices } from "./text.ts";
+import { approxTokens, formatName, notices, num } from "./text.ts";
 
 declare const __APP_VERSION__: string;
 
@@ -31,6 +32,8 @@ export function App() {
   // correct when called from the drop listener below, which is attached once.
   async function handle(file: File | undefined) {
     if (!file || abort.current) return;
+    // The upload stays on screen next to a result: clear it so the same file can be picked again.
+    if (input.current) input.current.value = "";
     const format = formatName(file.name);
     abort.current = new AbortController();
     setState({ kind: "working", name: file.name, reader: format && !loadedFormats.has(format) ? format : null, large: file.size > LARGE_FILE_BYTES });
@@ -50,9 +53,10 @@ export function App() {
   }
 
   function again() {
-    setState({ kind: "idle" });
+    // Rendered at once: "Välj fil" is disabled while busy and must be enabled before it can take focus.
+    flushSync(() => setState({ kind: "idle" }));
     if (input.current) input.current.value = "";
-    requestAnimationFrame(() => document.getElementById("choose")?.focus());
+    document.getElementById("choose")?.focus();
   }
 
   // Esc cancels a conversion, same as Avbryt; with "Så funkar det" open, Esc only closes that.
@@ -123,40 +127,48 @@ export function App() {
 
           <input ref={input} type="file" accept={ACCEPT} hidden onChange={(e) => void handle(e.target.files?.[0])} />
 
-          {state.kind === "idle" && (
-            <div className="dropzone">
-              <FileIcon />
-              <p className="dropzone-text">Dra hit ett dokument</p>
-              <p className="dropzone-or">eller</p>
-              <button id="choose" type="button" className="button primary" onClick={() => input.current?.click()}>
-                <span className="desktop-only">Välj fil</span>
-                <span className="phone-only">Välj dokument</span>
-              </button>
-              <p className="dropzone-formats">Word, Excel, CSV, PowerPoint eller PDF</p>
-            </div>
-          )}
-
-          {state.kind === "working" && (
-            <div className="panel working" role="status" aria-live="polite">
-              <FileIcon />
-              <p className="working-name">{state.name}</p>
-              <p className="working-status">{state.reader ? `Hämtar läsaren för ${state.reader} …` : "Silar …"}</p>
-              {state.reader && <p className="working-note">Första gången kan det ta en stund. Sedan finns läsaren kvar i webbläsaren.</p>}
-              {state.large && <p className="working-note">Stor fil. Det kan ta en stund.</p>}
-              <div className="progress" aria-hidden="true">
-                <span />
+          {/* Desktop: upload on the left at all times, example, progress or result on the right.
+              Phone (CSS): one column, upload before a file and the result after it. */}
+          <div className={`workspace ${state.kind}`}>
+            <div className="intake">
+              <div className="dropzone">
+                <FileIcon />
+                <p className="dropzone-text">Dra hit ett dokument</p>
+                <p className="dropzone-or">eller</p>
+                <button id="choose" type="button" className="button primary" onClick={() => input.current?.click()} disabled={busy}>
+                  <span className="desktop-only">Välj fil</span>
+                  <span className="phone-only">Välj dokument</span>
+                </button>
+                <p className="dropzone-formats">Word, Excel, CSV, PowerPoint eller PDF</p>
               </div>
-              {/* The focused "Välj fil" button just unmounted; keep keyboard users on a control. */}
-              {/* oxlint-disable-next-line jsx-a11y/no-autofocus */}
-              <button type="button" className="button outline cancel" onClick={() => abort.current?.abort()} autoFocus>
-                Avbryt
-              </button>
             </div>
-          )}
 
-          {state.kind === "done" && <Outcome name={state.name} result={state.result} onAgain={again} />}
+            <div className="output">
+              {state.kind === "idle" && <Example />}
 
-          {state.kind === "failed" && <Blocked title="Det gick inte att sila filen" message={state.message} onAgain={again} />}
+              {state.kind === "working" && (
+                <div className="panel working" role="status" aria-live="polite">
+                  <FileIcon />
+                  <p className="working-name">{state.name}</p>
+                  <p className="working-status">{state.reader ? `Hämtar läsaren för ${state.reader} …` : "Silar …"}</p>
+                  {state.reader && <p className="working-note">Första gången kan det ta en stund. Sedan finns läsaren kvar i webbläsaren.</p>}
+                  {state.large && <p className="working-note">Stor fil. Det kan ta en stund.</p>}
+                  <div className="progress" aria-hidden="true">
+                    <span />
+                  </div>
+                  {/* "Välj fil" was focused and is now disabled (or hidden on phones); keep keyboard users on a control. */}
+                  {/* oxlint-disable-next-line jsx-a11y/no-autofocus */}
+                  <button type="button" className="button outline cancel" onClick={() => abort.current?.abort()} autoFocus>
+                    Avbryt
+                  </button>
+                </div>
+              )}
+
+              {state.kind === "done" && <Outcome name={state.name} result={state.result} onAgain={again} />}
+
+              {state.kind === "failed" && <Blocked title="Det gick inte att sila filen" message={state.message} onAgain={again} />}
+            </div>
+          </div>
 
           <p className="privacy">
             <LockIcon />
@@ -232,6 +244,47 @@ export function App() {
         </div>
       )}
     </>
+  );
+}
+
+// Silar's real output for tests/fixtures/01-protokoll-styrelsemote.docx, up to the table.
+const EXAMPLE = `# Protokoll styrelsemöte Lerums seglarklubb
+
+Datum 2026-10-14, plats klubbhuset Aspen.
+
+## 1. Närvarande
+
+- Åsa Lindqvist, ordförande
+- Jörgen Öberg, kassör
+- Märta Ek, sekreterare
+
+## 2. Ekonomi
+
+Kassören redovisade att resultatet är **positivt med 42 300 kr** efter tredje kvartalet.
+
+| Post | Budget | Utfall |
+| --- | --- | --- |
+| Medlemsavgifter | 120 000 | 118 500 |
+| Bryggavgifter | 80 000 | 86 200 |
+| Underhåll | -60 000 | -41 900 |`;
+
+/** Before the first file: what a result looks like, in the panel the result will fill. */
+function Example() {
+  return (
+    <section className="result example" aria-labelledby="example-title">
+      <div className="result-head">
+        <div className="result-title">
+          <div>
+            <h2 id="example-title">Exempel</h2>
+            <p className="result-facts">
+              protokoll.docx · {num(EXAMPLE.length)} tecken · cirka {num(approxTokens(EXAMPLE.length))} tokens
+            </p>
+          </div>
+        </div>
+        <p className="example-hint">Ditt resultat visas här.</p>
+      </div>
+      <pre className="markdown">{EXAMPLE}</pre>
+    </section>
   );
 }
 
