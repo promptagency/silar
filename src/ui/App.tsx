@@ -116,7 +116,7 @@ export function App() {
       <main>
         <section className="wrap hero" aria-labelledby="hero-title">
           <h1 id="hero-title">Sila fram texten. Spara dina tokens.</h1>
-          <p className="sub">Från dokument till AI-redo text, utan att filen lämnar enheten.</p>
+          <p className="sub">Att be AI läsa komplexa dokument är att kasta bort värdefulla tokens. Det bästa är att sila bort allt som inte är text, data eller siffror och ge din AI-chat innehåll som den kan arbeta med lättare.</p>
 
           <input ref={input} type="file" accept={ACCEPT} hidden onChange={(e) => void handle(e.target.files?.[0])} />
 
