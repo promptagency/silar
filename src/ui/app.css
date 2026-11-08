@@ -362,22 +362,21 @@ nav button:hover {
   }
 }
 
+/* The privacy promise: dark text and the one Glöd icon outside the logo (docs/design.md). */
 .privacy {
   display: flex;
   align-items: flex-start;
   gap: 8px;
   margin-top: 16px;
-  color: var(--color-muted);
+  color: var(--color-ink);
   font-size: 15px;
+  font-weight: 500;
 }
 
 .privacy svg {
   flex: none;
   margin-top: 1px;
-}
-
-.formats-line {
-  margin-top: 4px;
+  color: var(--color-drop);
 }
 
 /* Warnings: never Glöd, so the drop keeps its meaning. */

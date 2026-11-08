@@ -1,4 +1,4 @@
-/* Tokens from docs/design.md. Glöd (--color-drop) is for the logo drop only. */
+/* Tokens from docs/design.md. Glöd (--color-drop) is for the logo drop and the privacy lock only. */
 :root {
   --color-bg: #f6f7f9;
   --color-surface: #ffffff;

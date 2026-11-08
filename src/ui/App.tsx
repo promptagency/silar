@@ -169,13 +169,10 @@ export function App() {
             </div>
           </div>
 
-          <div className="privacy">
+          <p className="privacy">
             <LockIcon />
-            <div>
-              <p>Filen lämnar aldrig din enhet. Allt sker här i webbläsaren.</p>
-              <p className="formats-line">Läser Word (.docx), Excel (.xlsx), CSV, PowerPoint (.pptx) och PDF.</p>
-            </div>
-          </div>
+            Filen lämnar aldrig din enhet. Allt sker här i webbläsaren.
+          </p>
         </section>
 
       </main>

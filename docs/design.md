@@ -30,7 +30,7 @@ Silar strains documents: the text runs through, the layout stays behind. The wor
 | `--color-ink` | Natt | `#0E1424` | Text, dark result panel |
 | `--color-muted` | | `#5A6275` | Secondary text (passes 4.5:1 on Dager) |
 | `--color-line` | | `#D5D9E2` | Borders, dividers |
-| `--color-drop` | Glöd | `#E8661C` | The drop only. Never buttons, text or warnings |
+| `--color-drop` | Glöd | `#E8661C` | The drop, and the lock icon on the privacy line (the one exception: the privacy promise is the core of Silar). Never buttons, text or warnings: on Dager it is only 3.1:1, below the 4.5:1 text needs |
 
 Warnings: background `#FBF3D5`, border `#E6D38F`, body text `#3D3A2A`, title and triangle icon in Natt. Never Glöd, so the drop keeps its meaning.
 
@@ -54,7 +54,7 @@ Short and dry. Swedish.
 ## App screens
 Reference artboards on the canvas, row "Webbappen". Build to match them.
 
-- **Start page** (`Start.dc.html`): light header with logo and the "Så funkar det" link, hero heading, then on desktop two columns as on the "Riktning B · Raster" board: drop zone on the left (about a third, white, 2 px dashed `#9BA6BE`) and the dark result panel on the right. Before the first file the right panel shows a dimmed example ("Exempel", Silar's real output for the minutes fixture, "Ditt resultat visas här."), at the same height as the drop zone. The drop zone stays next to the result, so a new file replaces it directly; next to a long result it keeps its height and sticks to the top while scrolling. Then the privacy line with lock icon and under it one muted line listing the formats. No further sections: why to strain first and what each format gives are in the "Så funkar det" modal. Then footer "Ett verktyg från Prompt Agency"
+- **Start page** (`Start.dc.html`): light header with logo and the "Så funkar det" link, hero heading, then on desktop two columns as on the "Riktning B · Raster" board: drop zone on the left (about a third, white, 2 px dashed `#9BA6BE`) and the dark result panel on the right. Before the first file the right panel shows a dimmed example ("Exempel", Silar's real output for the minutes fixture, "Ditt resultat visas här."), at the same height as the drop zone. The drop zone stays next to the result, so a new file replaces it directly; next to a long result it keeps its height and sticks to the top while scrolling. Then the privacy line with lock icon. No further sections: why to strain first and what each format gives are in the "Så funkar det" modal. Then footer "Ett verktyg från Prompt Agency"
 - **Så funkar det**: the header link opens a modal dialog (white panel, 12 px radius, dimmed Natt backdrop, sticky header with "Stäng") holding the three steps and "Vanliga frågor", an FAQ of native `<details>` rows with + and − in Signal. Closes on Esc, "Stäng" or a click outside
 - **Flow** (`Flode.dc.html`): 1 file dragged anywhere on the page (Nät fill, Signal border, "Släpp för att sila"), 2 first-time parser load with progress, 3 converting with file name and page count, 4 result, 5 unsupported format
 - **Result**: dark panel (Natt). Header row with check, "Silat.", file name, characters and approximate tokens, buttons "Kopiera" (Signal), "Ladda ned .md" (outline); "Sila en till" (text link) on phones only. Markdown in JetBrains Mono, read only. "Kopiera" shows "Kopierat." for two seconds
