@@ -54,7 +54,8 @@ Short and dry. Swedish.
 ## App screens
 Reference artboards on the canvas, row "Webbappen". Build to match them.
 
-- **Start page** (`Start.dc.html`): light header with logo and nav, hero heading + sub, drop zone (white, 2 px dashed `#9BA6BE`), privacy line with lock icon, three steps, comparison "Ladda upp filen i chatten" vs "Sila först", format cards, footer "Ett verktyg från Prompt Agency"
+- **Start page** (`Start.dc.html`): light header with logo and nav, hero heading + sub, drop zone (white, 2 px dashed `#9BA6BE`), privacy line with lock icon, comparison "Ladda upp filen i chatten" vs "Sila först", format cards, footer "Ett verktyg från Prompt Agency"
+- **Så funkar det**: the header link opens a modal dialog (white panel, 12 px radius, dimmed Natt backdrop, sticky header with "Stäng") holding the three steps and "Vanliga frågor", an FAQ of native `<details>` rows with + and − in Signal. Closes on Esc, "Stäng" or a click outside
 - **Flow** (`Flode.dc.html`): 1 file dragged anywhere on the page (Nät fill, Signal border, "Släpp för att sila"), 2 first-time parser load with progress, 3 converting with file name and page count, 4 result, 5 unsupported format
 - **Result**: dark panel (Natt). Header row with check, "Silat.", file name, characters and approximate tokens, buttons "Kopiera" (Signal), "Ladda ned .md" (outline), "Sila en till" (text link). Markdown in JetBrains Mono, read only. "Kopiera" shows "Kopierat." for two seconds
 - **Warnings** (`Varningar.dc.html`): scanned PDF replaces the result; other warnings sit above the result as a status row. Missing pages are also marked inside the Markdown as `<!-- Sida N saknar text -->`

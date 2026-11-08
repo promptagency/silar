@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { type ConvertResult, LARGE_FILE_BYTES } from "../convert/types.ts";
 import { convertFile } from "./convertFile.ts";
+import { HowItWorks } from "./HowItWorks.tsx";
 import { FileIcon, LockIcon, WarningIcon } from "./icons.tsx";
 import { Result } from "./Result.tsx";
 import { formatName, notices } from "./text.ts";
 
 declare const __APP_VERSION__: string;
 
-const ACCEPT =".docx,.xlsx,.csv,.pptx,.pdf";
+const ACCEPT = ".docx,.xlsx,.csv,.pptx,.pdf";
 
 type State =
   | { kind: "idle" }
@@ -23,6 +24,7 @@ export function App() {
   const [dragging, setDragging] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   const abort = useRef<AbortController | null>(null);
+  const howItWorks = useRef<HTMLDialogElement>(null);
   const busy = state.kind === "working";
 
   // Busy check on the ref, not state: it is set at once, and keeps handle()
@@ -53,11 +55,11 @@ export function App() {
     requestAnimationFrame(() => document.getElementById("choose")?.focus());
   }
 
-  // Esc cancels a conversion, same as Avbryt.
+  // Esc cancels a conversion, same as Avbryt; with "Så funkar det" open, Esc only closes that.
   useEffect(() => {
     if (!busy) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") abort.current?.abort();
+      if (e.key === "Escape" && !howItWorks.current?.open) abort.current?.abort();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -107,7 +109,9 @@ export function App() {
             <img src="/brand/silar-logo.svg" alt="" className="logo" />
           </a>
           <nav aria-label="Huvudmeny">
-            <a href="#sa-funkar-det">Så funkar det</a>
+            <button type="button" aria-haspopup="dialog" onClick={() => howItWorks.current?.showModal()}>
+              Så funkar det
+            </button>
             <a href="#format">Format</a>
           </nav>
         </div>
@@ -159,24 +163,6 @@ export function App() {
             <LockIcon />
             Filen lämnar aldrig din enhet. Allt sker här i webbläsaren.
           </p>
-        </section>
-
-        <section className="wrap" id="sa-funkar-det" aria-labelledby="steps-title">
-          <h2 id="steps-title">Så funkar det</h2>
-          <ol className="steps">
-            <li>
-              <h3>Välj ett dokument</h3>
-              <p>Word, Excel, CSV, PowerPoint eller PDF. En fil i taget.</p>
-            </li>
-            <li>
-              <h3>Silar plockar fram texten</h3>
-              <p>Rubriker, listor och tabeller blir Markdown. Layout, bilder och metadata stannar kvar.</p>
-            </li>
-            <li>
-              <h3>Klistra in i chatten</h3>
-              <p>Kopiera resultatet och klistra in det i den AI-tjänst du använder.</p>
-            </li>
-          </ol>
         </section>
 
         <section className="wrap" aria-labelledby="compare-title">
@@ -238,6 +224,8 @@ export function App() {
           Ett verktyg från <a href="https://promptagency.se">Prompt Agency</a> · Version {__APP_VERSION__}
         </div>
       </footer>
+
+      <HowItWorks ref={howItWorks} />
 
       {dragging && (
         <div className="drag-overlay" aria-hidden="true">
