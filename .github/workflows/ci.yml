@@ -1,5 +1,6 @@
 # Checks every push to dev and every pull request to main: lint, type
-# check, unit tests and the production build (with its size gate).
+# check, unit tests, the production build (with its size gate) and the
+# Playwright browser tests in all five setups.
 # A push to main (a merged pull request) tags the release as v<version>.
 name: ci
 
@@ -21,6 +22,15 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+      # Browser tests in all five setups (chromium, webkit, firefox, iphone, android).
+      - run: npx playwright install --with-deps chromium webkit firefox
+      - run: npm run test:e2e
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: test-results/
+          retention-days: 7
 
   tag:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
