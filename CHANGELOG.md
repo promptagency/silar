@@ -4,6 +4,24 @@ Silar follows [Semantic Versioning](https://semver.org/): MAJOR for changes
 that break how people use Silar or the `convert()` API, MINOR for new
 features and formats, PATCH for fixes. Newest first.
 
+## 1.5.0 (2026-11-08)
+
+- PowerPoint: SmartArt text comes out as a nested list. Letters some tools
+  write as number codes come out as letters.
+- Word: hidden text is left out. Cells merged downward no longer push the
+  rest of the row into the wrong columns.
+- Excel: date-and-time cells show as yyyy-mm-dd hh:mm. Workbooks using the
+  1904 date system show the right dates. An empty formatted cell far from
+  the data no longer makes the file time out.
+- CSV: Swedish decimals without a header row stay whole. A quote that never
+  closes no longer swallows the rest of the file.
+- PDF: pages drawn sideways are read correctly. PDFs also work in browsers
+  without `Promise.try`, using pdf.js's legacy build.
+- Very large results show the first 200 000 characters on screen. Copying
+  and saving still take everything, and the page no longer freezes.
+- Offline, opening a file type for the first time says the reader could not
+  be fetched instead of blaming the file.
+
 ## 1.4.0 (2026-11-08)
 
 - PDF results also show approximately how many tokens the PDF itself would
