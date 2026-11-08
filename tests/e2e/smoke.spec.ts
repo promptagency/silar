@@ -136,3 +136,20 @@ test("Så funkar det opens as a modal with the FAQ, Esc closes it and focus retu
   await expect(dialog).toBeHidden();
   await expect(opener).toBeFocused();
 });
+
+test("earlier results in this tab can be shown again", async ({ page, isMobile }) => {
+  await page.goto("/");
+  const file = page.locator('input[type="file"]');
+  const result = page.getByLabel("Resultat i Markdown");
+  await file.setInputFiles(FIXTURES + "04-export-svensk-excel.csv");
+  await expect(result).toContainText("Flytväst barn", { timeout: 30_000 });
+  // Phones show the upload (and the list) only after "Sila en till".
+  if (isMobile) await page.getByRole("button", { name: "Sila en till" }).click();
+  await file.setInputFiles(FIXTURES + "01-protokoll-styrelsemote.docx");
+  await expect(result).toContainText("Medlemsavgifter", { timeout: 30_000 });
+  if (isMobile) await page.getByRole("button", { name: "Sila en till" }).click();
+  const list = page.getByRole("region", { name: "Silade filer" });
+  await list.getByRole("button", { name: "04-export-svensk-excel.csv" }).click();
+  await expect(result).toContainText("Flytväst barn");
+  await expect(page.getByRole("heading", { name: "Silat." })).toBeFocused();
+});

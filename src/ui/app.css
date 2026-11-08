@@ -263,6 +263,7 @@ nav button:hover {
 
 .intake {
   display: flex;
+  flex-direction: column;
   position: sticky;
   top: 24px;
   min-height: 360px;
@@ -377,6 +378,39 @@ nav button:hover {
   flex: none;
   margin-top: 1px;
   color: var(--color-drop);
+}
+
+/* This tab's earlier results, under the privacy line. */
+.history {
+  margin-top: 24px;
+}
+
+.history h2 {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.history ul {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+}
+
+.history .text-button {
+  padding: 0;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.history [aria-current] {
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.history-note {
+  margin-top: 4px;
+  color: var(--color-muted);
+  font-size: 15px;
 }
 
 /* Warnings: never Glöd, so the drop keeps its meaning. */
