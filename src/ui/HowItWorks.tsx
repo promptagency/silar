@@ -1,6 +1,10 @@
 import type { ReactNode, Ref } from "react";
 
 const FAQ: [string, ReactNode][] = [
+  [
+    "Varför göra om filen till Markdown innan den går till AI-chatten?",
+    "För att AI:n ska få innehållet, inte förpackningen. Laddar du upp filen gör tjänsten om den till text på sitt eget sätt: tabeller kan gå sönder, sidhuvuden upprepas, spalter blandas och layout och bilder tar plats. Markdown är ren text där rubriker, listor och tabeller behåller sin struktur, och AI-modeller läser det bra. Du ser exakt vad som skickas, kan stryka det som inte ska med och sparar tokens.",
+  ],
   ["Skickas min fil någonstans?", "Nej. Silar läser filen i webbläsaren på din enhet. Filen, filnamnet och resultatet skickas aldrig till någon server."],
   [
     "Hur sparar Silar tokens?",
