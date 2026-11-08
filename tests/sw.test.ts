@@ -96,7 +96,9 @@ describe("small helpers", () => {
 
 describe("parsersIn (bundle gate)", () => {
   it("finds each parser by a string that survives minification", () => {
-    expect(parsersIn('x="mammoth";y="SheetJS"')).toEqual(["docx", "xlsx"]);
+    expect(parsersIn('x.convertToHtml(a);y.sheet_to_json(b)')).toEqual(["docx", "xlsx"]);
+    // The FAQ names the libraries; that copy is not parser code.
+    expect(parsersIn("Word: mammoth och turndown. Excel: SheetJS.")).toEqual([]);
     expect(parsersIn("createRoot(document.body)")).toEqual([]);
   });
 });

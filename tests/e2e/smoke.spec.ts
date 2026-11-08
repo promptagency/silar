@@ -16,7 +16,7 @@ function watchForeign(page: Page, origin: string): string[] {
 test("start page loads and talks only to its own origin", async ({ page, baseURL }) => {
   const foreign = watchForeign(page, new URL(baseURL!).origin);
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Silar fram texten. Resten stannar kvar.");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Sila fram texten. Spara dina tokens.");
   expect(foreign).toEqual([]);
 });
 
@@ -100,4 +100,23 @@ test("a file dropped anywhere on the page converts, also a second time", async (
   await page.getByRole("button", { name: "Sila en till" }).first().click();
   await drop();
   await expect(page.getByLabel("Resultat i Markdown")).toContainText("| Flytväst barn | 12 | 449,50 |");
+});
+
+test("Så funkar det opens as a modal with the FAQ, Esc closes it and focus returns", async ({ page }) => {
+  await page.goto("/");
+  const opener = page.getByRole("button", { name: "Så funkar det" });
+  // By keyboard: Safari never focuses a clicked button, so there is nothing to return to after a click.
+  await opener.focus();
+  await page.keyboard.press("Enter");
+  const dialog = page.getByRole("dialog", { name: "Så funkar det" });
+  await expect(dialog).toBeVisible();
+  await dialog.getByText("Skickas min fil någonstans?").click();
+  await expect(dialog.getByText("skickas aldrig till någon server")).toBeVisible();
+  // Opening another question closes the first.
+  await dialog.getByText("Vilken teknik bygger Silar på?").click();
+  await expect(dialog.getByText("pdf.js från Mozilla")).toBeVisible();
+  await expect(dialog.getByText("skickas aldrig till någon server")).toBeHidden();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+  await expect(opener).toBeFocused();
 });
