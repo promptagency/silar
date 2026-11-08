@@ -1,7 +1,7 @@
 // Markdown helpers shared by the table-producing parsers (csv, xlsx, pptx).
 
 /** One GFM table cell: no pipes or line breaks that would break the row. */
-export const cell = (s: string) => s.replace(/\r?\n/g, " ").replace(/\|/g, "\\|").trim();
+export const cell = (s: string) => s.replace(/[\r\n]+/g, " ").replace(/\|/g, "\\|").trim();
 
 /** GFM table with the first row as header. Rows are padded to the widest row. */
 export function table(rows: string[][]): string {

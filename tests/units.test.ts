@@ -32,6 +32,10 @@ describe("detect", () => {
   });
 });
 
+it("keeps a lone carriage return (old Mac CSV) inside its table row", () => {
+  expect(table([["a"], ["rad ett\rrad två"]])).toBe("| a |\n| --- |\n| rad ett rad två |");
+});
+
 describe("convert", () => {
   it("warns unsupported_format in Swedish", async () => {
     const r = await convert({ name: "gammal.xls", data: bytes("x").buffer });
