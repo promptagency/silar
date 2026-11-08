@@ -66,7 +66,11 @@ function serviceWorker(): Plugin {
 
 export default defineConfig({
   plugins: [react(), cspMeta(), serviceWorker()],
-  define: { __SW_KILL__: JSON.stringify(SW_KILL) },
+  define: {
+    __SW_KILL__: JSON.stringify(SW_KILL),
+    // SemVer from package.json, shown in the footer.
+    __APP_VERSION__: JSON.stringify(JSON.parse(readFileSync("package.json", "utf8")).version),
+  },
   worker: { format: "es" },
   test: { include: ["tests/**/*.test.ts"], testTimeout: 30_000 },
 });

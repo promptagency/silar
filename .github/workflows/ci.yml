@@ -1,0 +1,41 @@
+# Checks every push to dev and every pull request to main: lint, type
+# check, unit tests and the production build (with its size gate).
+# A push to main (a merged pull request) tags the release as v<version>.
+name: ci
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+
+  tag:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - name: Tag v<version> from package.json, once
+        run: |
+          tag="v$(node -p 'require("./package.json").version')"
+          git fetch --tags --quiet
+          if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+            echo "$tag already exists"
+          else
+            git tag "$tag" && git push origin "$tag"
+          fi
