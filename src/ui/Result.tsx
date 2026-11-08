@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { ConvertResult } from "../convert/types.ts";
 import { CheckIcon, ShareIcon, WarningIcon } from "./icons.tsx";
-import { approxTokens, extent, markdownName, notices, num } from "./text.ts";
+import { approxTokens, extent, markdownName, notices, num, pdfTokens } from "./text.ts";
 
 function download(name: string, text: string) {
   const url = URL.createObjectURL(new Blob([text], { type: "text/markdown;charset=utf-8" }));
@@ -27,9 +27,10 @@ async function shareOrSave(name: string, text: string) {
 export function Result({ name, result, onAgain }: { name: string; result: ConvertResult; onAgain: () => void }) {
   const [copy, setCopy] = useState<"idle" | "done" | "failed">("idle");
   const heading = useRef<HTMLHeadingElement>(null);
-  const { markdown } = result;
+  const { markdown, meta } = result;
   const fileName = markdownName(name);
-  const facts = [name, extent(result.meta), `${num(markdown.length)} tecken`, `cirka ${num(approxTokens(markdown.length))} tokens`].filter(Boolean);
+  const asPdf = meta.format === "pdf" && meta.pages ? `som PDF cirka ${num(pdfTokens(markdown.length, meta.pages))} tokens` : null;
+  const facts = [name, extent(meta), `${num(markdown.length)} tecken`, `cirka ${num(approxTokens(markdown.length))} tokens`, asPdf].filter(Boolean);
 
   useEffect(() => heading.current?.focus(), []);
   useEffect(() => {

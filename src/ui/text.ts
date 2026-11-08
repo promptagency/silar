@@ -7,6 +7,12 @@ export const num = (n: number) => nf.format(n);
 /** Characters divided by 3.3, a rough figure for Swedish text. */
 export const approxTokens = (chars: number) => Math.round(chars / 3.3);
 
+// shortcut: Claude's page render size is undocumented (image cap 1,568 tokens, 4,784 on 4.7+), so this stays low; update if Anthropic documents it.
+const PDF_PAGE_IMAGE_TOKENS = 1500;
+
+/** The PDF itself sent to Claude: its text plus one image per page. */
+export const pdfTokens = (chars: number, pages: number) => approxTokens(chars) + pages * PDF_PAGE_IMAGE_TOKENS;
+
 const FORMAT_NAMES: Record<string, string> = { docx: "Word", xlsx: "Excel", csv: "CSV", pptx: "PowerPoint", pdf: "PDF" };
 
 /** Format name from a file name, for "loading the PDF reader" before the result tells us. */
