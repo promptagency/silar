@@ -47,7 +47,7 @@ Warnings: background `#FBF3D5`, border `#E6D38F`, body text `#3D3A2A`, title and
 ## Voice
 Short and dry. Swedish.
 - Heading: "Sila fram texten. Spara dina tokens."
-- Sub: "Att be AI läsa komplexa dokument är att kasta bort värdefulla tokens. Det bästa är att sila bort allt som inte är text, data eller siffror och ge din AI-chatt innehåll som den kan arbeta med lättare."
+- Sub: none; the heading stands alone above the drop zone
 - States: "Silar …", "Silat.", "Kopierat."
 - Buttons: "Välj fil", "Kopiera", "Ladda ned .md"
 

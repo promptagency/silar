@@ -11,6 +11,21 @@ const FAQ: [string, ReactNode][] = [
   ["Vad är Markdown?", "Ett enkelt textformat. # betyder rubrik, - betyder punktlista och | bygger tabeller. AI-tjänster läser det bra."],
   ["Fungerar Silar utan internet?", "Ja, efter första besöket. Läsaren för varje filtyp sparas i webbläsaren första gången du öppnar en sådan fil."],
   [
+    "Vilken teknik bygger Silar på?",
+    <>
+      Öppen källkod som körs i din webbläsare:
+      <ul>
+        <li>Word: mammoth och turndown</li>
+        <li>Excel: SheetJS</li>
+        <li>PowerPoint: fflate och fast-xml-parser</li>
+        <li>PDF: pdf.js från Mozilla</li>
+        <li>CSV: Silars egen kod</li>
+        <li>Gränssnittet: React</li>
+      </ul>
+      Ingen programvara från Microsoft används. Word, Excel och PowerPoint sparar i ett öppet standardformat (Office Open XML) som biblioteken läser direkt.
+    </>,
+  ],
+  [
     "Vad kostar det?",
     <>
       Inget. Silar är gratis och öppen källkod. Koden finns på <a href="https://github.com/promptagency/silar">GitHub</a>.
@@ -57,9 +72,10 @@ export function HowItWorks({ ref }: { ref: Ref<HTMLDialogElement> }) {
       <h3 className="faq-title">Vanliga frågor</h3>
       <div className="faq">
         {FAQ.map(([q, a]) => (
-          <details key={q}>
+          // Same name: opening one closes the others (native exclusive accordion).
+          <details key={q} name="faq">
             <summary>{q}</summary>
-            <p>{a}</p>
+            <div className="faq-answer">{a}</div>
           </details>
         ))}
       </div>

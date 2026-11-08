@@ -112,6 +112,10 @@ test("Så funkar det opens as a modal with the FAQ, Esc closes it and focus retu
   await expect(dialog).toBeVisible();
   await dialog.getByText("Skickas min fil någonstans?").click();
   await expect(dialog.getByText("skickas aldrig till någon server")).toBeVisible();
+  // Opening another question closes the first.
+  await dialog.getByText("Vilken teknik bygger Silar på?").click();
+  await expect(dialog.getByText("pdf.js från Mozilla")).toBeVisible();
+  await expect(dialog.getByText("skickas aldrig till någon server")).toBeHidden();
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
   await expect(opener).toBeFocused();

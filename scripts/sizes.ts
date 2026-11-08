@@ -7,10 +7,10 @@ import { pathToFileURL } from "node:url";
 import { gzipSync } from "node:zlib";
 import { shellFiles } from "../src/sw/core.ts";
 
-/** A string that survives minification, per parser. */
+/** An API name each parser library has, survives minification and never appears in UI copy (the FAQ names the libraries). */
 const PARSER_MARKS: Record<string, string> = {
-  docx: "mammoth",
-  xlsx: "SheetJS",
+  docx: "convertToHtml",
+  xlsx: "sheet_to_json",
   csv: "windows-1252",
   pptx: "ppt/presentation.xml",
   pdf: "getDocument",
