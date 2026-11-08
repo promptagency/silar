@@ -141,7 +141,8 @@ export function App() {
               <div className="progress" aria-hidden="true">
                 <span />
               </div>
-              <button type="button" className="button outline cancel" onClick={() => abort.current?.abort()}>
+              {/* autoFocus: the focused "Välj fil" button just unmounted; keep keyboard users on a control. */}
+              <button type="button" className="button outline cancel" onClick={() => abort.current?.abort()} autoFocus>
                 Avbryt
               </button>
             </div>

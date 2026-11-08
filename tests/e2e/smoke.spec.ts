@@ -76,6 +76,7 @@ test(`${how} stops a conversion and returns to the start`, async ({ page, contex
   await page.locator('input[type="file"]').setInputFiles(FIXTURES + "01-protokoll-styrelsemote.docx");
   const cancel = page.getByRole("button", { name: "Avbryt" });
   await expect(cancel).toBeVisible();
+  await expect(cancel).toBeFocused();
   if (how === "Avbryt") await cancel.click();
   else await page.keyboard.press("Escape");
   await expect(page.getByRole("button", { name: /^Välj (fil|dokument)$/ })).toBeFocused();
