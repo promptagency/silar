@@ -3,6 +3,7 @@
 // (CLAUDE.md: "The initial page load must not include any parser code").
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 import { gzipSync } from "node:zlib";
 import { shellFiles } from "../src/sw/core.ts";
 
@@ -36,7 +37,8 @@ export function report(dist: string): { lines: string[]; leaks: string[] } {
   return { lines, leaks };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// pathToFileURL: import.meta.url is percent-encoded (spaces, å, ä, ö), argv is not.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const { lines, leaks } = report("dist");
   console.log(`\nBundle sizes (JS and CSS):\n${lines.join("\n")}`);
   if (leaks.length) {

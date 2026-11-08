@@ -23,6 +23,13 @@ describe("detect", () => {
     expect(await detect("gammal.doc", bytes("\xd0\xcf\x11\xe0"))).toEqual({ format: null, legacy: "doc" });
     expect(await detect("bild.png", bytes("\x89PNG"))).toEqual({ format: null, legacy: undefined });
   });
+
+  it("calls an OLE file named .docx locked, not unsupported", async () => {
+    const ole = new Uint8Array([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]);
+    expect(await detect("lönelista.xlsx", ole)).toEqual({ format: null, locked: true });
+    const r = await convert({ name: "avtal.docx", data: ole.buffer });
+    expect(r.warnings).toEqual([{ code: "unsupported_format", message: expect.stringContaining("lösenordsskyddad") }]);
+  });
 });
 
 describe("convert", () => {

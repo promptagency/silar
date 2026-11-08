@@ -2,7 +2,7 @@
 // A mismatch or unknown extension falls back to the bytes: %PDF anywhere in
 // the first kilobyte (as Acrobat accepts), or a zip whose main part names it.
 export type Format = "docx" | "xlsx" | "pptx" | "csv" | "pdf";
-export type Detected = { format: Format } | { format: null; legacy?: string };
+export type Detected = { format: Format } | { format: null; legacy?: string; locked?: true };
 
 const ZIP_MAIN: Record<string, Format> = {
   "word/document.xml": "docx",
@@ -13,6 +13,7 @@ const EXT: Record<string, Format> = { docx: "docx", xlsx: "xlsx", pptx: "pptx", 
 const LEGACY = new Set(["doc", "xls", "ppt"]);
 
 const isZip = (b: Uint8Array) => b[0] === 0x50 && b[1] === 0x4b && b[2] === 0x03 && b[3] === 0x04;
+const isOle = (b: Uint8Array) => b[0] === 0xd0 && b[1] === 0xcf && b[2] === 0x11 && b[3] === 0xe0;
 export const isPdf = (b: Uint8Array) => new TextDecoder("latin1").decode(b.subarray(0, 1024)).includes("%PDF-");
 
 async function zipFormat(bytes: Uint8Array): Promise<Format | null> {
@@ -38,5 +39,7 @@ export async function detect(name: string, bytes: Uint8Array): Promise<Detected>
     const format = await zipFormat(bytes);
     if (format) return { format };
   }
+  // Office saves a password-protected docx/xlsx/pptx inside an OLE file, not a zip.
+  if (byExt && byExt !== "pdf" && isOle(bytes)) return { format: null, locked: true };
   return { format: null, legacy: LEGACY.has(ext) ? ext : undefined };
 }

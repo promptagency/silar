@@ -28,6 +28,19 @@ const CASES: [string, string][] = [
   ["06-rapport-flera-sidor.pdf", "## Handläggning"],
 ];
 
+// Only Chromium lets a test grant clipboard read access.
+test("Kopiera puts the whole result on the clipboard", async ({ page, context, browserName }) => {
+  test.skip(browserName !== "chromium", "clipboard permissions are Chromium only");
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto("/");
+  await page.locator('input[type="file"]').setInputFiles(FIXTURES + "01-protokoll-styrelsemote.docx");
+  const result = page.getByLabel("Resultat i Markdown");
+  await expect(result).toContainText("Medlemsavgifter", { timeout: 30_000 });
+  await page.getByRole("button", { name: "Kopiera" }).click();
+  await expect(page.getByRole("button", { name: "Kopierat." })).toBeVisible();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(await result.textContent());
+});
+
 for (const [file, expected] of CASES) {
   test(`converts ${file} in the browser, same origin only`, async ({ page, baseURL }) => {
     const foreign = watchForeign(page, new URL(baseURL!).origin);

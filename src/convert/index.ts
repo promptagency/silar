@@ -14,10 +14,12 @@ const PARSERS: Record<Format, () => Promise<(bytes: Uint8Array) => Promise<Conve
   pptx: () => import("./pptx.ts").then((m) => m.convertPptx),
 };
 
-function unsupported(legacy?: string): ConvertResult {
-  const message = legacy
-    ? `Det äldre formatet .${legacy} stöds inte. Spara filen som .${legacy}x och försök igen.`
-    : "Filformatet stöds inte. Silar läser Word (.docx), Excel (.xlsx), CSV, PowerPoint (.pptx) och PDF.";
+function unsupported({ legacy, locked }: { legacy?: string; locked?: true }): ConvertResult {
+  const message = locked
+    ? "Filen är lösenordsskyddad eller sparad i ett äldre format. Ta bort lösenordet i Office, spara om filen och försök igen."
+    : legacy
+      ? `Det äldre formatet .${legacy} stöds inte. Spara filen som .${legacy}x och försök igen.`
+      : "Filformatet stöds inte. Silar läser Word (.docx), Excel (.xlsx), CSV, PowerPoint (.pptx) och PDF.";
   return { markdown: "", warnings: [{ code: "unsupported_format", message }], meta: { format: "unknown" } };
 }
 
@@ -25,7 +27,7 @@ export async function convert(file: ConvertInput): Promise<ConvertResult> {
   const data = "data" in file ? file.data : await file.arrayBuffer();
   const bytes = new Uint8Array(data);
   const found = await detect(file.name, bytes);
-  if (!found.format) return unsupported(found.legacy);
+  if (!found.format) return unsupported(found);
   const warnings: Warning[] =
     bytes.length > LARGE_FILE_BYTES ? [{ code: "large_file", message: "Filen är större än 25 MB. Det kan ta en stund." }] : [];
   const result = await (await PARSERS[found.format]())(bytes);
