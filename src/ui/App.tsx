@@ -176,28 +176,6 @@ export function App() {
           </p>
         </section>
 
-        <section className="wrap" aria-labelledby="compare-title">
-          <h2 id="compare-title">Varför ska du sila texten först?</h2>
-          <div className="compare">
-            <div className="compare-card">
-              <h3>Ladda upp filen i chatten</h3>
-              <ul>
-                <li>Hela filen skickas, med metadata, bilder och dolda delar.</li>
-                <li>Tjänsten tolkar layouten på sitt eget sätt.</li>
-                <li>Du ser inte vad som faktiskt följer med.</li>
-              </ul>
-            </div>
-            <div className="compare-card chosen">
-              <h3>Sila först</h3>
-              <ul>
-                <li>Filen stannar hos dig.</li>
-                <li>Du ser exakt vilken text som skickas och kan stryka det som inte ska med.</li>
-                <li>Ren text tar mindre plats i chatten.</li>
-              </ul>
-            </div>
-          </div>
-        </section>
-
         <section className="wrap" id="format" aria-labelledby="format-title">
           <h2 id="format-title">Format</h2>
           <ul className="formats">
