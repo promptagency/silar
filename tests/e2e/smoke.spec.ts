@@ -58,6 +58,16 @@ test("a scanned PDF shows the warning instead of a result", async ({ page }) => 
   await expect(page.getByRole("heading", { name: "Ingen text att sila" })).toBeVisible({ timeout: 30_000 });
 });
 
+test("offline, a file type not opened before does not blame the file", async ({ page, context, browserName }) => {
+  test.skip(browserName === "firefox", "under Playwright's offline mode Firefox still loads the reader, so the file converts");
+  await page.goto("/");
+  await context.setOffline(true);
+  await page.locator('input[type="file"]').setInputFiles(FIXTURES + "06-rapport-flera-sidor.pdf");
+  await expect(page.getByRole("heading", { name: "Det gick inte att sila filen" })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByText("Läsaren för PDF har inte hämtats än")).toBeVisible();
+  await expect(page.getByText("skadad")).toHaveCount(0);
+});
+
 test.describe("an older browser", () => {
   // Without a service worker every script request reaches the route below.
   test.use({ serviceWorkers: "block" });

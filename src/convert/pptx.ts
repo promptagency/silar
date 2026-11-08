@@ -1,7 +1,7 @@
 // PowerPoint (.pptx) via fflate + fast-xml-parser. Slides in the order of
 // presentation.xml (not file names), one ## section per slide, shapes in
-// drawing order, body placeholders as indented lists, tables as GFM tables,
-// speaker notes under their own subheading. Blank and hidden slides are
+// drawing order, body placeholders and SmartArt as indented lists, tables as
+// GFM tables, speaker notes under their own subheading. Blank and hidden slides are
 // skipped; slide date, footer and number placeholders are left out.
 import { XMLParser } from "fast-xml-parser";
 import { strFromU8, unzipSync } from "fflate";
@@ -56,13 +56,35 @@ interface Slide {
   blocks: string[];
 }
 
-function shapes(nodes: Node[], slide: Slide): void {
+/** SmartArt's text as a nested list. Its points are in no set order, so the diagram's own tree is followed. */
+function smartArt(model: Node | undefined): string {
+  const points = all(child(model, "dgm:ptLst"), "dgm:pt");
+  const textOf = new Map(points.map((p) => [attr(p, "modelId"), all(child(p, "dgm:t"), "a:p").map(paraText).filter(Boolean).join(" ")]));
+  const links = all(child(model, "dgm:cxnLst"), "dgm:cxn").filter((c) => (attr(c, "type") ?? "parOf") === "parOf");
+  const order = (c: Node) => Number(attr(c, "srcOrd") ?? 0);
+  const lines: string[] = [];
+  const walk = (id: string | undefined, depth: number) => {
+    for (const c of links.filter((l) => attr(l, "srcId") === id).sort((a, b) => order(a) - order(b))) {
+      const text = textOf.get(attr(c, "destId"));
+      if (text) lines.push(`${"  ".repeat(depth)}- ${text}`);
+      walk(attr(c, "destId"), depth + 1);
+    }
+  };
+  walk(attr(points.find((p) => attr(p, "type") === "doc") ?? {}, "modelId"), 0);
+  return lines.join("\n");
+}
+
+function shapes(nodes: Node[], slide: Slide, diagram: (relId: string) => string): void {
   for (const n of nodes) {
     const t = tag(n);
-    if (t === "p:grpSp") shapes(kids(n), slide);
-    else if (t === "mc:AlternateContent") shapes(kids(child(n, "mc:Choice") ?? {}), slide);
+    if (t === "p:grpSp") shapes(kids(n), slide, diagram);
+    else if (t === "mc:AlternateContent") shapes(kids(child(n, "mc:Choice") ?? {}), slide, diagram);
     else if (t === "p:graphicFrame") {
-      const tbl = path(n, "a:graphic", "a:graphicData", "a:tbl");
+      const data = path(n, "a:graphic", "a:graphicData");
+      const relIds = child(data, "dgm:relIds");
+      const list = relIds ? diagram(attr(relIds, "r:dm") ?? "") : "";
+      if (list) slide.blocks.push(list);
+      const tbl = child(data, "a:tbl");
       if (tbl) slide.blocks.push(table(all(tbl, "a:tr").map((tr) => all(tr, "a:tc").map((tc) => all(child(tc, "a:txBody"), "a:p").map(paraText).filter(Boolean).join(" ")))));
     } else if (t === "p:sp") {
       const ph = path(n, "p:nvSpPr", "p:nvPr", "p:ph");
@@ -125,9 +147,11 @@ export async function convertPptx(bytes: Uint8Array): Promise<ConvertResult> {
     const sld = read(part).find((n) => tag(n) === "p:sld");
     if (!sld || attr(sld, "show") === "0") return;
     const slide: Slide = { title: "", blocks: [] };
-    shapes(kids(path(sld, "p:cSld", "p:spTree") ?? {}), slide);
+    const slideRels = rels(part);
+    const diagram = (relId: string) => smartArt(read(slideRels.get(relId)?.target ?? "").find((n) => tag(n) === "dgm:dataModel"));
+    shapes(kids(path(sld, "p:cSld", "p:spTree") ?? {}), slide, diagram);
 
-    const notesPart = [...rels(part).values()].find((r) => r.type.endsWith("/notesSlide"))?.target;
+    const notesPart = [...slideRels.values()].find((r) => r.type.endsWith("/notesSlide"))?.target;
     const notesTree = notesPart ? path(read(notesPart).find((n) => tag(n) === "p:notes"), "p:cSld", "p:spTree") : undefined;
     const notes = all(notesTree, "p:sp")
       .filter((sp) => attr(path(sp, "p:nvSpPr", "p:nvPr", "p:ph") ?? {}, "type") === "body")

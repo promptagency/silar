@@ -18,12 +18,12 @@ export function registerServiceWorker(): void {
  * and the new build then waits until every tab is closed. While a build is
  * still waiting, ask it again every second; the ask can be dropped the same way.
  */
-export function retryWaitingActivation(reg: ServiceWorkerRegistration, delayMs = 1000): void {
+export function retryWaitingActivation(reg: ServiceWorkerRegistration): void {
   const retryWhileWaiting = (worker: ServiceWorker) => {
     const timer = setInterval(() => {
       if (reg.waiting === worker) worker.postMessage(SKIP_WAITING);
       else clearInterval(timer);
-    }, delayMs);
+    }, 1000);
   };
   const watch = (worker: ServiceWorker | null) => {
     if (!worker) return;

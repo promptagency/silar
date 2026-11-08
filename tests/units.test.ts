@@ -160,4 +160,15 @@ describe("big inputs", () => {
     const { markdown } = await convertXlsx(zipSync(files));
     expect(markdown).toBe("## S\n\n| Namn | Ort |\n| --- | --- |\n| Åsa | Lerum |");
   });
+
+  it("does not stretch an xlsx sheet to an empty formatted cell far away", async () => {
+    const sheet = XLSX.utils.aoa_to_sheet([["Namn", "Ort"], ["Åsa", "Lerum"]]);
+    const files = unzipSync(XLSX.write({ SheetNames: ["S"], Sheets: { S: sheet } }, { type: "buffer", bookType: "xlsx" }));
+    const xml = strFromU8(files["xl/worksheets/sheet1.xml"]);
+    files["xl/worksheets/sheet1.xml"] = strToU8(xml.replace("</sheetData>", '<row r="2000"><c r="XFD2000" s="0"/></row></sheetData>'));
+    const start = Date.now();
+    const { markdown } = await convertXlsx(zipSync(files));
+    expect(markdown).toBe("## S\n\n| Namn | Ort |\n| --- | --- |\n| Åsa | Lerum |");
+    expect(Date.now() - start).toBeLessThan(5000); // 32 million cells if the empty one counts
+  });
 });

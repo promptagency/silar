@@ -127,7 +127,8 @@ export function readingOrder(items: Item[], pageWidth: number): Item[][] {
 }
 
 /** Table rows as cell texts, cells put under shared column starts. */
-export function tableRows(lines: Cell[][], tolerance = 6): string[][] {
+export function tableRows(lines: Cell[][]): string[][] {
+  const tolerance = 6;
   const starts: number[] = [];
   for (const x of lines.flat().map((c) => c.x).sort((a, b) => a - b)) if (!starts.length || x - starts.at(-1)! > tolerance) starts.push(x);
   return lines.map((cells) => {

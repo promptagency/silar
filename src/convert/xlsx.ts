@@ -33,12 +33,13 @@ function shown(c: XLSX.CellObject | undefined, formulas: { count: number }, date
 /**
  * The range the sheet's cells actually span. Not !ref: that comes from the
  * file's <dimension> tag, which can claim the whole grid (A1:XFD1048576,
- * 17 billion cells) for a sheet with two cells in it.
+ * 17 billion cells) for a sheet with two cells in it. Empty cells that only
+ * carry formatting do not count either, for the same reason.
  */
 function usedRange(sheet: XLSX.WorkSheet): XLSX.Range | null {
   let range: XLSX.Range | null = null;
   for (const key of Object.keys(sheet)) {
-    if (key.startsWith("!")) continue;
+    if (key.startsWith("!") || (sheet[key].t === "z" && !sheet[key].f)) continue;
     const { r, c } = XLSX.utils.decode_cell(key);
     if (!range) range = { s: { r, c }, e: { r, c } };
     else {

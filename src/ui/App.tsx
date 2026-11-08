@@ -50,7 +50,10 @@ export function App() {
       const message =
         outcome.reason === "timeout"
           ? "Det tog för lång tid att läsa filen. Prova att dela upp den i mindre delar."
-          : "Filen gick inte att läsa. Den kan vara skadad eller lösenordsskyddad. Prova att spara om den och försök igen.";
+          : !navigator.onLine && format && !loadedFormats.has(format)
+            ? // The reader is fetched the first time a file type is opened; offline that fails.
+              `Läsaren för ${format} har inte hämtats än, och du verkar vara utan internet. Anslut till internet och försök igen.`
+            : "Filen gick inte att läsa. Den kan vara skadad eller lösenordsskyddad. Prova att spara om den och försök igen.";
       setState({ kind: "failed", message });
       return;
     }
