@@ -180,7 +180,7 @@ export function App() {
         </section>
 
         <section className="wrap" aria-labelledby="compare-title">
-          <h2 id="compare-title">Varför sila först?</h2>
+          <h2 id="compare-title">Varför ska du sila texten först?</h2>
           <div className="compare">
             <div className="compare-card">
               <h3>Ladda upp filen i chatten</h3>
