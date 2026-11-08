@@ -26,7 +26,7 @@ export function extent(meta: ConvertResult["meta"]): string | null {
 const TITLES: Record<WarningCode, string> = {
   no_text_layer: "Ingen text att sila",
   page_without_text: "Sidor utan text",
-  unsupported_format: "Formatet stöds inte",
+  unsupported_format: "Filen kan inte silas",
   formula_without_value: "Formler utan värden",
   encoding_fallback: "Teckenkodning",
   large_file: "Stor fil",

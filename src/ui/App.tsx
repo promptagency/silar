@@ -136,7 +136,7 @@ export function App() {
               <FileIcon />
               <p className="working-name">{state.name}</p>
               <p className="working-status">{state.reader ? `Hämtar läsaren för ${state.reader} …` : "Silar …"}</p>
-              {state.reader && <p className="working-note">Första gången tar det en stund. Sedan finns läsaren kvar i webbläsaren.</p>}
+              {state.reader && <p className="working-note">Första gången kan det ta en stund. Sedan finns läsaren kvar i webbläsaren.</p>}
               {state.large && <p className="working-note">Stor fil, det kan ta en stund.</p>}
               <div className="progress" aria-hidden="true">
                 <span />

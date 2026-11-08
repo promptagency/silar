@@ -81,7 +81,7 @@ export function Result({ name, result, onAgain }: { name: string; result: Conver
           </div>
         </div>
         <span className="visually-hidden" aria-live="polite">
-          {copy === "done" ? "Kopierat." : ""}
+          {copy === "idle" ? "" : copyLabel}
         </span>
         {markdown ? (
           <pre className="markdown" tabIndex={0} aria-label="Resultat i Markdown">
