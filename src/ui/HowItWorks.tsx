@@ -26,7 +26,7 @@ const FAQ: [string, ReactNode][] = [
         <li>CSV: Silars egen kod</li>
         <li>Gränssnittet: React</li>
       </ul>
-      Ingen programvara från Microsoft används. Word, Excel och PowerPoint sparar i ett öppet standardformat (Office Open XML) som biblioteken läser direkt.
+      Ingen programvara från Microsoft används. Word, Excel och PowerPoint sparar i ett öppet standardformat (Office Open XML) som biblioteken läser direkt. Liknande verktyg kör Microsofts MarkItDown i webbläsaren. Silar använder lättare JavaScript-bibliotek, så första besöket går snabbare.
     </>,
   ],
   [
