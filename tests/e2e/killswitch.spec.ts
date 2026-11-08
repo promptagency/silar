@@ -43,10 +43,13 @@ test("a kill switch build clears a returning visitor's cache and removes the ser
     await page.reload();
     await expect.poll(counts, { timeout: 30_000 }).toEqual({ caches: 0, workers: 0 });
 
-    // The kill build's own app must not register a worker again.
-    await page.reload();
-    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-    await expect.poll(counts).toEqual({ caches: 0, workers: 0 });
+    // The kill build's own app must not register a worker again. Retried: the
+    // kill switch reloads the tab itself, and that can collide with this reload.
+    await expect(async () => {
+      await page.reload();
+      await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+      expect(await counts()).toEqual({ caches: 0, workers: 0 });
+    }).toPass({ timeout: 30_000 });
   } finally {
     server.close();
   }

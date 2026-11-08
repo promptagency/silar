@@ -19,6 +19,8 @@ const parser = new XMLParser({
   trimValues: false,
   parseTagValue: false,
   parseAttributeValue: false,
+  // Some tools write å as &#229;; without this the code stays in the text.
+  htmlEntities: true,
 });
 
 const tag = (n: Node) => Object.keys(n).find((k) => k !== ":@") ?? "";

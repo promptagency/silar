@@ -41,6 +41,21 @@ test("Kopiera puts the whole result on the clipboard", async ({ page, context, b
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(await result.textContent());
 });
 
+test("a very large result shows only its start, and Kopiera still takes all of it", async ({ page, context, browserName }) => {
+  test.skip(browserName !== "chromium", "clipboard permissions are Chromium only");
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto("/");
+  const rows = Array.from({ length: 30_000 }, (_, i) => `rad ${i};en text som fyller ut raden`);
+  await page.locator('input[type="file"]').setInputFiles({ name: "stor.csv", mimeType: "text/csv", buffer: Buffer.from(rows.join("\n")) });
+  const result = page.getByLabel("Resultat i Markdown");
+  await expect(result).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByText("Visar de första")).toBeVisible();
+  expect((await result.textContent())?.length).toBe(200_000);
+  await page.getByRole("button", { name: "Kopiera" }).click();
+  await expect(page.getByRole("button", { name: "Kopierat." })).toBeVisible();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toContain("rad 29999");
+});
+
 for (const [file, expected] of CASES) {
   test(`converts ${file} in the browser, same origin only`, async ({ page, baseURL }) => {
     const foreign = watchForeign(page, new URL(baseURL!).origin);

@@ -71,3 +71,13 @@ it("reads SmartArt as a nested list in the diagram's own order", async () => {
   const { markdown } = await convertPptx(zip);
   expect(markdown).toBe("## Bild 1: Process\n\n- Första\n  - Underpunkt\n- Andra");
 });
+
+it("decodes letters written as number codes, once", async () => {
+  const zip = zipSync({
+    "ppt/presentation.xml": strToU8(`<p:presentation ${NS}><p:sldIdLst><p:sldId id="256" r:id="rA"/></p:sldIdLst></p:presentation>`),
+    "ppt/_rels/presentation.xml.rels": strToU8(`<Relationships>${rel("rA", "slides/slide1.xml")}</Relationships>`),
+    "ppt/slides/slide1.xml": strToU8(slide(sp("", "<a:p><a:r><a:t>F&#246;rs&#xE4;ljning &amp;#246;</a:t></a:r></a:p>"))),
+  });
+  const { markdown } = await convertPptx(zip);
+  expect(markdown).toBe("## Bild 1\n\nFörsäljning &#246;");
+});

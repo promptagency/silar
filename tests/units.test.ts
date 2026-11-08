@@ -143,6 +143,10 @@ describe("csv", () => {
   it("keeps the comma when semicolons do not split the rows evenly", () => {
     expect(sniff("a;x,b,c\n1,2,3\n4,5,6\n")).toBe(",");
   });
+
+  it("keeps a quote that never closes as text, and the rows after it", () => {
+    expect(parse('"a;b";c\n"Anna;Lund\nBo;Malmö\n', ";")).toEqual([["a;b", "c"], ['"Anna', "Lund"], ["Bo", "Malmö"]]);
+  });
 });
 
 describe("big inputs", () => {

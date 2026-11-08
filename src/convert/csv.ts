@@ -16,11 +16,12 @@ export function decode(bytes: Uint8Array): { text: string; fallback: boolean } {
 }
 
 /** RFC 4180: quoted fields may hold delimiters, line breaks and "" for a quote. */
-export function parse(text: string, delimiter: string): string[][] {
+export function parse(text: string, delimiter: string, plainFrom = Infinity): string[][] {
   const rows: string[][] = [];
   let row: string[] = [];
   let field = "";
   let quoted = false;
+  let openedAt = 0;
   const endField = () => {
     row.push(field);
     field = "";
@@ -36,13 +37,17 @@ export function parse(text: string, delimiter: string): string[][] {
       if (c !== '"') field += c;
       else if (text[i + 1] === '"') field += text[++i];
       else quoted = false;
-    } else if (c === '"' && field === "") quoted = true;
-    else if (c === delimiter) endField();
+    } else if (c === '"' && field === "" && i < plainFrom) {
+      quoted = true;
+      openedAt = i;
+    } else if (c === delimiter) endField();
     else if (c === "\n" || c === "\r") {
       if (c === "\r" && text[i + 1] === "\n") i++;
       endRow();
     } else field += c;
   }
+  // A quote that never closed would swallow the rest of the file: read it as text instead.
+  if (quoted) return parse(text, delimiter, openedAt);
   if (field !== "" || row.length) endRow();
   return rows.filter((r) => r.some((f) => f.trim() !== ""));
 }
