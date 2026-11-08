@@ -4,6 +4,12 @@ Silar follows [Semantic Versioning](https://semver.org/): MAJOR for changes
 that break how people use Silar or the `convert()` API, MINOR for new
 features and formats, PATCH for fixes. Newest first.
 
+## 1.4.0 (2026-11-08)
+
+- PDF results also show approximately how many tokens the PDF itself would
+  use: its text plus one page image per page, based on how Claude reads
+  PDFs. Other formats are unchanged.
+
 ## 1.3.0 (2026-11-08)
 
 - "Silade filer": up to 10 results from this tab, under the privacy line.
