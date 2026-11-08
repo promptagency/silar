@@ -184,14 +184,6 @@ nav button:hover {
 }
 
 /* Sections */
-main > section.wrap + section.wrap {
-  margin-top: 80px;
-}
-
-main > section > h2 {
-  font-size: 28px;
-  margin-bottom: 24px;
-}
 
 .hero {
   margin-top: 56px;
@@ -256,6 +248,35 @@ main > section > h2 {
 }
 
 /* Drop zone and working state */
+/* Upload on the left, example or result on the right (desktop). */
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) 2fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* Same height as the example; next to a long result the upload keeps its size and stays in view. */
+.workspace.idle {
+  align-items: stretch;
+}
+
+.intake {
+  display: flex;
+  position: sticky;
+  top: 24px;
+  min-height: 360px;
+}
+
+.intake .dropzone {
+  flex: 1;
+  justify-content: center;
+}
+
+.output {
+  min-width: 0;
+}
+
 .dropzone,
 .panel {
   display: flex;
@@ -341,13 +362,21 @@ main > section > h2 {
   }
 }
 
+/* The privacy promise: dark text and the one Glöd icon outside the logo (docs/design.md). */
 .privacy {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   margin-top: 16px;
-  color: var(--color-muted);
+  color: var(--color-ink);
   font-size: 15px;
+  font-weight: 500;
+}
+
+.privacy svg {
+  flex: none;
+  margin-top: 1px;
+  color: var(--color-drop);
 }
 
 /* Warnings: never Glöd, so the drop keeps its meaning. */
@@ -448,18 +477,25 @@ main > section > h2 {
   font-family: var(--font-ui);
 }
 
-/* Steps, comparison, formats */
-.steps,
-.formats {
+/* Example before the first file: the result panel, dimmed, at full length. */
+.example .markdown {
+  max-height: none;
+  color: rgba(246, 247, 249, 0.7);
+}
+
+.example-hint {
+  font-size: 15px;
+  color: rgba(246, 247, 249, 0.75);
+}
+
+/* Steps, in the "Så funkar det" modal */
+.steps {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 16px;
-}
-
-.steps {
   grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
   counter-reset: step;
 }
 
@@ -481,55 +517,13 @@ main > section > h2 {
   font-weight: 700;
 }
 
-.steps h3,
-.compare h3,
-.formats h3 {
+.steps h3 {
   font-size: 18px;
   margin-bottom: 6px;
 }
 
-.steps p,
-.formats p {
+.steps p {
   color: var(--color-muted);
-}
-
-.compare {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.compare-card,
-.formats li {
-  padding: 24px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-panel);
-}
-
-.compare-card.chosen {
-  border: 2px solid var(--color-accent);
-}
-
-.compare ul {
-  margin: 0;
-  padding-left: 20px;
-  color: var(--color-muted);
-}
-
-.compare li + li {
-  margin-top: 6px;
-}
-
-.formats {
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-}
-
-.formats .ext {
-  font-family: var(--font-mono);
-  font-size: 14px;
-  color: var(--color-accent);
-  margin-bottom: 8px;
 }
 
 .site-footer {
@@ -586,8 +580,20 @@ main > section > h2 {
     margin-top: 32px;
   }
 
-  main > section.wrap + section.wrap {
-    margin-top: 56px;
+  /* One column: the upload before a file, the result after it. */
+  .workspace {
+    display: block;
+  }
+
+  .workspace.idle .output,
+  .workspace:not(.idle) .intake {
+    display: none;
+  }
+
+  /* Only the button is left on phones: no desktop height, no sticking. */
+  .intake {
+    position: static;
+    min-height: 0;
   }
 
   /* No drag-and-drop on phones: one full-width button. */
@@ -605,9 +611,7 @@ main > section > h2 {
     width: 100%;
   }
 
-  .steps,
-  .compare,
-  .formats {
+  .steps {
     grid-template-columns: 1fr;
   }
 
@@ -619,10 +623,6 @@ main > section > h2 {
 
   .modal-head {
     padding-top: 20px;
-  }
-
-  main > section > h2 {
-    font-size: 24px;
   }
 
   .result-head {
@@ -664,10 +664,4 @@ main > section > h2 {
   .phone-bar .button.primary {
     flex: 1;
   }
-}
-
-/* Long Swedish compounds ("talaranteckningar") in narrow format cards. */
-.formats p {
-  hyphens: auto;
-  overflow-wrap: break-word;
 }

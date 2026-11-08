@@ -75,7 +75,8 @@ export function Result({ name, result, onAgain }: { name: string; result: Conver
             <button type="button" className="button outline desktop-only" onClick={() => download(fileName, markdown)} disabled={!markdown}>
               Ladda ned .md
             </button>
-            <button type="button" className="text-button" onClick={onAgain}>
+            {/* Desktop keeps the upload next to the result; phones need a way back. */}
+            <button type="button" className="text-button phone-only" onClick={onAgain}>
               Sila en till
             </button>
           </div>

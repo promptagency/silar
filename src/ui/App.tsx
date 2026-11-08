@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { type ConvertResult, LARGE_FILE_BYTES } from "../convert/types.ts";
 import { convertFile } from "./convertFile.ts";
 import { HowItWorks } from "./HowItWorks.tsx";
 import { FileIcon, LockIcon, WarningIcon } from "./icons.tsx";
 import { Result } from "./Result.tsx";
-import { formatName, notices } from "./text.ts";
+import { approxTokens, formatName, notices, num } from "./text.ts";
 
 declare const __APP_VERSION__: string;
 
@@ -31,6 +32,8 @@ export function App() {
   // correct when called from the drop listener below, which is attached once.
   async function handle(file: File | undefined) {
     if (!file || abort.current) return;
+    // The upload stays on screen next to a result: clear it so the same file can be picked again.
+    if (input.current) input.current.value = "";
     const format = formatName(file.name);
     abort.current = new AbortController();
     setState({ kind: "working", name: file.name, reader: format && !loadedFormats.has(format) ? format : null, large: file.size > LARGE_FILE_BYTES });
@@ -50,9 +53,10 @@ export function App() {
   }
 
   function again() {
-    setState({ kind: "idle" });
+    // Rendered at once: "Välj fil" is disabled while busy and must be enabled before it can take focus.
+    flushSync(() => setState({ kind: "idle" }));
     if (input.current) input.current.value = "";
-    requestAnimationFrame(() => document.getElementById("choose")?.focus());
+    document.getElementById("choose")?.focus();
   }
 
   // Esc cancels a conversion, same as Avbryt; with "Så funkar det" open, Esc only closes that.
@@ -112,51 +116,58 @@ export function App() {
             <button type="button" aria-haspopup="dialog" onClick={() => howItWorks.current?.showModal()}>
               Så funkar det
             </button>
-            <a href="#format">Format</a>
           </nav>
         </div>
       </header>
 
       <main>
         <section className="wrap hero" aria-labelledby="hero-title">
-          <h1 id="hero-title">Sila fram texten. Spara dina tokens.</h1>
+          <h1 id="hero-title">Sila dina texter. Spara dina tokens.</h1>
 
           <input ref={input} type="file" accept={ACCEPT} hidden onChange={(e) => void handle(e.target.files?.[0])} />
 
-          {state.kind === "idle" && (
-            <div className="dropzone">
-              <FileIcon />
-              <p className="dropzone-text">Dra hit ett dokument</p>
-              <p className="dropzone-or">eller</p>
-              <button id="choose" type="button" className="button primary" onClick={() => input.current?.click()}>
-                <span className="desktop-only">Välj fil</span>
-                <span className="phone-only">Välj dokument</span>
-              </button>
-              <p className="dropzone-formats">Word, Excel, CSV, PowerPoint eller PDF</p>
-            </div>
-          )}
-
-          {state.kind === "working" && (
-            <div className="panel working" role="status" aria-live="polite">
-              <FileIcon />
-              <p className="working-name">{state.name}</p>
-              <p className="working-status">{state.reader ? `Hämtar läsaren för ${state.reader} …` : "Silar …"}</p>
-              {state.reader && <p className="working-note">Första gången kan det ta en stund. Sedan finns läsaren kvar i webbläsaren.</p>}
-              {state.large && <p className="working-note">Stor fil. Det kan ta en stund.</p>}
-              <div className="progress" aria-hidden="true">
-                <span />
+          {/* Desktop: upload on the left at all times, example, progress or result on the right.
+              Phone (CSS): one column, upload before a file and the result after it. */}
+          <div className={`workspace ${state.kind}`}>
+            <div className="intake">
+              <div className="dropzone">
+                <FileIcon />
+                <p className="dropzone-text">Dra hit ett dokument</p>
+                <p className="dropzone-or">eller</p>
+                <button id="choose" type="button" className="button primary" onClick={() => input.current?.click()} disabled={busy}>
+                  <span className="desktop-only">Välj fil</span>
+                  <span className="phone-only">Välj dokument</span>
+                </button>
+                <p className="dropzone-formats">Word, Excel, CSV, PowerPoint eller PDF</p>
               </div>
-              {/* The focused "Välj fil" button just unmounted; keep keyboard users on a control. */}
-              {/* oxlint-disable-next-line jsx-a11y/no-autofocus */}
-              <button type="button" className="button outline cancel" onClick={() => abort.current?.abort()} autoFocus>
-                Avbryt
-              </button>
             </div>
-          )}
 
-          {state.kind === "done" && <Outcome name={state.name} result={state.result} onAgain={again} />}
+            <div className="output">
+              {state.kind === "idle" && <Example />}
 
-          {state.kind === "failed" && <Blocked title="Det gick inte att sila filen" message={state.message} onAgain={again} />}
+              {state.kind === "working" && (
+                <div className="panel working" role="status" aria-live="polite">
+                  <FileIcon />
+                  <p className="working-name">{state.name}</p>
+                  <p className="working-status">{state.reader ? `Hämtar läsaren för ${state.reader} …` : "Silar …"}</p>
+                  {state.reader && <p className="working-note">Första gången kan det ta en stund. Sedan finns läsaren kvar i webbläsaren.</p>}
+                  {state.large && <p className="working-note">Stor fil. Det kan ta en stund.</p>}
+                  <div className="progress" aria-hidden="true">
+                    <span />
+                  </div>
+                  {/* "Välj fil" was focused and is now disabled (or hidden on phones); keep keyboard users on a control. */}
+                  {/* oxlint-disable-next-line jsx-a11y/no-autofocus */}
+                  <button type="button" className="button outline cancel" onClick={() => abort.current?.abort()} autoFocus>
+                    Avbryt
+                  </button>
+                </div>
+              )}
+
+              {state.kind === "done" && <Outcome name={state.name} result={state.result} onAgain={again} />}
+
+              {state.kind === "failed" && <Blocked title="Det gick inte att sila filen" message={state.message} onAgain={again} />}
+            </div>
+          </div>
 
           <p className="privacy">
             <LockIcon />
@@ -164,58 +175,6 @@ export function App() {
           </p>
         </section>
 
-        <section className="wrap" aria-labelledby="compare-title">
-          <h2 id="compare-title">Varför ska du sila texten först?</h2>
-          <div className="compare">
-            <div className="compare-card">
-              <h3>Ladda upp filen i chatten</h3>
-              <ul>
-                <li>Hela filen skickas, med metadata, bilder och dolda delar.</li>
-                <li>Tjänsten tolkar layouten på sitt eget sätt.</li>
-                <li>Du ser inte vad som faktiskt följer med.</li>
-              </ul>
-            </div>
-            <div className="compare-card chosen">
-              <h3>Sila först</h3>
-              <ul>
-                <li>Filen stannar hos dig.</li>
-                <li>Du ser exakt vilken text som skickas och kan stryka det som inte ska med.</li>
-                <li>Ren text tar mindre plats i chatten.</li>
-              </ul>
-            </div>
-          </div>
-        </section>
-
-        <section className="wrap" id="format" aria-labelledby="format-title">
-          <h2 id="format-title">Format</h2>
-          <ul className="formats">
-            <li>
-              <h3>Word</h3>
-              <p className="ext">.docx</p>
-              <p>Rubriker, listor, tabeller och länkar.</p>
-            </li>
-            <li>
-              <h3>Excel</h3>
-              <p className="ext">.xlsx</p>
-              <p>En tabell per flik. Datum och procent som i Excel.</p>
-            </li>
-            <li>
-              <h3>CSV</h3>
-              <p className="ext">.csv</p>
-              <p>Även svenska Excel-exporter med semikolon.</p>
-            </li>
-            <li>
-              <h3>PowerPoint</h3>
-              <p className="ext">.pptx</p>
-              <p>En rubrik per bild, punktlistor och talaranteckningar.</p>
-            </li>
-            <li>
-              <h3>PDF</h3>
-              <p className="ext">.pdf</p>
-              <p>Text, rubriker och enkla tabeller. Inskannade sidor går inte att läsa.</p>
-            </li>
-          </ul>
-        </section>
       </main>
 
       <footer className="site-footer">
@@ -232,6 +191,47 @@ export function App() {
         </div>
       )}
     </>
+  );
+}
+
+// Silar's real output for tests/fixtures/01-protokoll-styrelsemote.docx, up to the table.
+const EXAMPLE = `# Protokoll styrelsemöte Lerums seglarklubb
+
+Datum 2026-10-14, plats klubbhuset Aspen.
+
+## 1. Närvarande
+
+- Åsa Lindqvist, ordförande
+- Jörgen Öberg, kassör
+- Märta Ek, sekreterare
+
+## 2. Ekonomi
+
+Kassören redovisade att resultatet är **positivt med 42 300 kr** efter tredje kvartalet.
+
+| Post | Budget | Utfall |
+| --- | --- | --- |
+| Medlemsavgifter | 120 000 | 118 500 |
+| Bryggavgifter | 80 000 | 86 200 |
+| Underhåll | -60 000 | -41 900 |`;
+
+/** Before the first file: what a result looks like, in the panel the result will fill. */
+function Example() {
+  return (
+    <section className="result example" aria-labelledby="example-title">
+      <div className="result-head">
+        <div className="result-title">
+          <div>
+            <h2 id="example-title">Exempel</h2>
+            <p className="result-facts">
+              protokoll.docx · {num(EXAMPLE.length)} tecken · cirka {num(approxTokens(EXAMPLE.length))} tokens
+            </p>
+          </div>
+        </div>
+        <p className="example-hint">Ditt resultat visas här.</p>
+      </div>
+      <pre className="markdown">{EXAMPLE}</pre>
+    </section>
   );
 }
 

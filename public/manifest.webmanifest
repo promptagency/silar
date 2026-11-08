@@ -1,7 +1,7 @@
 {
   "name": "Silar",
   "short_name": "Silar",
-  "description": "Sila fram texten. Spara dina tokens.",
+  "description": "Sila dina texter. Spara dina tokens.",
   "lang": "sv",
   "start_url": "/",
   "display": "standalone",

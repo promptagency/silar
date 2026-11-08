@@ -16,7 +16,7 @@ function watchForeign(page: Page, origin: string): string[] {
 test("start page loads and talks only to its own origin", async ({ page, baseURL }) => {
   const foreign = watchForeign(page, new URL(baseURL!).origin);
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Sila fram texten. Spara dina tokens.");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Sila dina texter. Spara dina tokens.");
   expect(foreign).toEqual([]);
 });
 
@@ -86,20 +86,36 @@ test(`${how} stops a conversion and returns to the start`, async ({ page, contex
 
 test("a file dropped anywhere on the page converts, also a second time", async ({ page }) => {
   const csv = readFileSync(FIXTURES + "04-export-svensk-excel.csv");
-  const drop = () =>
+  const drop = (bytes: number[]) =>
     page.evaluate(async (bytes) => {
       const dt = new DataTransfer();
       dt.items.add(new File([new Uint8Array(bytes)], "export.csv"));
       for (const type of ["dragenter", "dragover", "drop"]) document.body.dispatchEvent(new DragEvent(type, { dataTransfer: dt, bubbles: true }));
-    }, [...csv]);
+    }, bytes);
   await page.goto("/");
-  // React may render after the load event; the drop listener is attached once the app is up.
+  // The drop listener is attached in an effect after the first paint, which on slow CI runners can
+  // come after the button shows. Drop again until the app leaves its idle state.
   await expect(page.getByRole("button", { name: /^Välj (fil|dokument)$/ })).toBeVisible();
-  await drop();
-  await expect(page.getByLabel("Resultat i Markdown")).toContainText("| Flytväst barn | 12 | 449,50 |");
-  await page.getByRole("button", { name: "Sila en till" }).first().click();
-  await drop();
-  await expect(page.getByLabel("Resultat i Markdown")).toContainText("| Flytväst barn | 12 | 449,50 |");
+  await expect(async () => {
+    await drop([...csv]);
+    await expect(page.locator(".workspace.idle")).toHaveCount(0, { timeout: 1000 });
+  }).toPass({ timeout: 15_000 });
+  // The first file also loads the CSV reader: slow on CI runners, as in the other conversion tests.
+  await expect(page.getByLabel("Resultat i Markdown")).toContainText("| Flytväst barn | 12 | 449,50 |", { timeout: 30_000 });
+  // A second file replaces the result directly, no "Sila en till" in between.
+  await drop([...new TextEncoder().encode("Namn;Ort\nÅsa;Lerum\n")]);
+  await expect(page.getByLabel("Resultat i Markdown")).toContainText("| Åsa | Lerum |", { timeout: 30_000 });
+});
+
+test("desktop: example beside the upload, which stays next to the result", async ({ page, isMobile }) => {
+  test.skip(isMobile, "phones show one column");
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Exempel" })).toBeVisible();
+  await page.locator('input[type="file"]').setInputFiles(FIXTURES + "01-protokoll-styrelsemote.docx");
+  await expect(page.getByRole("heading", { name: "Silat." })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole("heading", { name: "Exempel" })).toBeHidden();
+  await expect(page.getByRole("button", { name: "Välj fil" })).toBeEnabled();
+  await expect(page.getByRole("button", { name: "Sila en till" })).toBeHidden();
 });
 
 test("Så funkar det opens as a modal with the FAQ, Esc closes it and focus returns", async ({ page }) => {

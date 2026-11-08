@@ -3,8 +3,8 @@
 </p>
 
 <p align="center">
-  <strong>Sila fram texten. Spara dina tokens.</strong><br>
-  Strain out the text. Save your tokens.
+  <strong>Sila dina texter. Spara dina tokens.</strong><br>
+  Strain your texts. Save your tokens.
 </p>
 
 <p align="center"><a href="https://silar.app">silar.app</a></p>
