@@ -122,7 +122,7 @@ export function App() {
 
       <main>
         <section className="wrap hero" aria-labelledby="hero-title">
-          <h1 id="hero-title">Sila fram texten. Spara dina tokens.</h1>
+          <h1 id="hero-title">Sila dina texter. Spara dina tokens.</h1>
 
           <input ref={input} type="file" accept={ACCEPT} hidden onChange={(e) => void handle(e.target.files?.[0])} />
 

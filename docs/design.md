@@ -46,7 +46,7 @@ Warnings: background `#FBF3D5`, border `#E6D38F`, body text `#3D3A2A`, title and
 
 ## Voice
 Short and dry. Swedish.
-- Heading: "Sila fram texten. Spara dina tokens."
+- Heading: "Sila dina texter. Spara dina tokens."
 - Sub: none; the heading stands alone above the drop zone
 - States: "Silar …", "Silat.", "Kopierat."
 - Buttons: "Välj fil", "Kopiera", "Ladda ned .md"
