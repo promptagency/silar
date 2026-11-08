@@ -77,7 +77,7 @@ export async function convertXlsx(bytes: Uint8Array): Promise<ConvertResult> {
     sections.push([`## ${name}`, ...titles.map((r) => r.filter(Boolean).join(" ")), table(body)].filter(Boolean).join("\n\n"));
   }
   const warnings: Warning[] = formulas.count
-    ? [{ code: "formula_without_value", message: `${formulas.count} formler saknar sparat värde och visas som formel. Öppna och spara filen i Excel för att få med värdena.` }]
+    ? [{ code: "formula_without_value", message: `${formulas.count} ${formulas.count === 1 ? "formel" : "formler"} saknar sparat värde och visas som formel. Öppna och spara filen i Excel för att få med värdena.` }]
     : [];
   return { markdown: sections.join("\n\n"), warnings, meta: { format: "xlsx", sheets: visible } };
 }

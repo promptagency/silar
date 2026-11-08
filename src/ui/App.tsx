@@ -137,7 +137,7 @@ export function App() {
               <p className="working-name">{state.name}</p>
               <p className="working-status">{state.reader ? `Hämtar läsaren för ${state.reader} …` : "Silar …"}</p>
               {state.reader && <p className="working-note">Första gången kan det ta en stund. Sedan finns läsaren kvar i webbläsaren.</p>}
-              {state.large && <p className="working-note">Stor fil, det kan ta en stund.</p>}
+              {state.large && <p className="working-note">Stor fil. Det kan ta en stund.</p>}
               <div className="progress" aria-hidden="true">
                 <span />
               </div>
@@ -149,11 +149,11 @@ export function App() {
 
           {state.kind === "done" && <Outcome name={state.name} result={state.result} onAgain={again} />}
 
-          {state.kind === "failed" && <Blocked title="Något gick fel" message={state.message} onAgain={again} />}
+          {state.kind === "failed" && <Blocked title="Det gick inte att sila filen" message={state.message} onAgain={again} />}
 
           <p className="privacy">
             <LockIcon />
-            Filen lämnar aldrig din dator. Allt sker här i webbläsaren.
+            Filen lämnar aldrig din enhet. Allt sker här i webbläsaren.
           </p>
         </section>
 
@@ -189,7 +189,7 @@ export function App() {
             <div className="compare-card chosen">
               <h3>Sila först</h3>
               <ul>
-                <li>Filen stannar på din dator.</li>
+                <li>Filen stannar hos dig.</li>
                 <li>Du ser exakt vilken text som skickas och kan stryka det som inte ska med.</li>
                 <li>Ren text tar mindre plats i chatten.</li>
               </ul>

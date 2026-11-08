@@ -32,6 +32,14 @@ describe("detect", () => {
   });
 });
 
+it("says 1 formel, not 1 formler", async () => {
+  const ws: XLSX.WorkSheet = { "!ref": "A1:B1", A1: { t: "s", v: "Summa" }, B1: { t: "z", f: "SUM(C1:C9)" } };
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Blad1");
+  const r = await convertXlsx(new Uint8Array(XLSX.write(wb, { type: "array", bookType: "xlsx" })));
+  expect(r.warnings[0].message).toMatch(/^1 formel saknar/);
+});
+
 it("keeps a lone carriage return (old Mac CSV) inside its table row", () => {
   expect(table([["a"], ["rad ett\rrad två"]])).toBe("| a |\n| --- |\n| rad ett rad två |");
 });

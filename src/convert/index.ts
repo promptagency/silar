@@ -29,7 +29,7 @@ export async function convert(file: ConvertInput): Promise<ConvertResult> {
   const found = await detect(file.name, bytes);
   if (!found.format) return unsupported(found);
   const warnings: Warning[] =
-    bytes.length > LARGE_FILE_BYTES ? [{ code: "large_file", message: "Filen är större än 25 MB. Det kan ta en stund." }] : [];
+    bytes.length > LARGE_FILE_BYTES ? [{ code: "large_file", message: "Filen är större än 25 MB. Resultatet kan bli för långt för en del AI-chattar." }] : [];
   const result = await (await PARSERS[found.format]())(bytes);
   return { ...result, warnings: [...warnings, ...result.warnings] };
 }

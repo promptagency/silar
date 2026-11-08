@@ -68,7 +68,7 @@ export function sniff(text: string): string {
 export async function convertCsv(bytes: Uint8Array): Promise<ConvertResult> {
   const { text, fallback } = decode(bytes);
   const warnings: Warning[] = fallback
-    ? [{ code: "encoding_fallback", message: "Filen var inte sparad som UTF-8. Silar läste den som Windows-1252, kontrollera å, ä och ö." }]
+    ? [{ code: "encoding_fallback", message: "Filen använder en äldre teckenkodning. Kontrollera att å, ä och ö ser rätt ut." }]
     : [];
   return { markdown: table(parse(text, sniff(text))), warnings, meta: { format: "csv" } };
 }
