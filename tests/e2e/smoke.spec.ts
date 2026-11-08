@@ -16,7 +16,7 @@ function watchForeign(page: Page, origin: string): string[] {
 test("start page loads and talks only to its own origin", async ({ page, baseURL }) => {
   const foreign = watchForeign(page, new URL(baseURL!).origin);
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Silar fram texten. Resten stannar kvar.");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Sila fram texten. Spara dina tokens.");
   expect(foreign).toEqual([]);
 });
 

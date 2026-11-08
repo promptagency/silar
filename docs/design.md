@@ -46,7 +46,7 @@ Warnings: background `#FBF3D5`, border `#E6D38F`, body text `#3D3A2A`, title and
 
 ## Voice
 Short and dry. Swedish.
-- Heading: "Silar fram texten. Resten stannar kvar."
+- Heading: "Sila fram texten. Spara dina tokens."
 - Sub: "Från dokument till AI-redo text, utan att filen lämnar enheten."
 - States: "Silar …", "Silat.", "Kopierat."
 - Buttons: "Välj fil", "Kopiera", "Ladda ned .md"
