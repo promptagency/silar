@@ -63,6 +63,7 @@ test("a mixed PDF shows the page warning above the result", async ({ page }) => 
   await page.locator('input[type="file"]').setInputFiles(FIXTURES + "10-pdf-blandad.pdf");
   await expect(page.getByRole("note").getByText("Sida 2 saknar text")).toBeVisible({ timeout: 30_000 });
   await expect(page.getByLabel("Resultat i Markdown")).toContainText("<!-- Sida 2 saknar text -->");
+  await expect(page.locator(".result-facts")).toContainText("som PDF cirka");
 });
 
 for (const how of ["Avbryt", "Esc"] as const)
@@ -114,6 +115,7 @@ test("desktop: example beside the upload, which stays next to the result", async
   await page.locator('input[type="file"]').setInputFiles(FIXTURES + "01-protokoll-styrelsemote.docx");
   await expect(page.getByRole("heading", { name: "Silat." })).toBeVisible({ timeout: 30_000 });
   await expect(page.getByRole("heading", { name: "Exempel" })).toBeHidden();
+  await expect(page.locator(".result-facts")).not.toContainText("som PDF");
   await expect(page.getByRole("button", { name: "Välj fil" })).toBeEnabled();
   await expect(page.getByRole("button", { name: "Sila en till" })).toBeHidden();
 });

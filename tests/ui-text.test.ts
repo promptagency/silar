@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { approxTokens, extent, markdownName, notices } from "../src/ui/text.ts";
+import { approxTokens, extent, markdownName, notices, pdfTokens } from "../src/ui/text.ts";
 
 it("groups scanned pages into one notice", () => {
   const w = (page: number) => ({ code: "page_without_text" as const, page, message: `Sida ${page} saknar text.` });
@@ -16,4 +16,5 @@ it("describes the extent per format and names the download", () => {
   expect(extent({ format: "csv" })).toBeNull();
   expect(markdownName("Rapport 2026.final.pdf")).toBe("Rapport 2026.final.md");
   expect(approxTokens(3300)).toBe(1000);
+  expect(pdfTokens(3300, 2)).toBe(4000);
 });
