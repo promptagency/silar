@@ -141,7 +141,8 @@ export function App() {
               <div className="progress" aria-hidden="true">
                 <span />
               </div>
-              {/* autoFocus: the focused "Välj fil" button just unmounted; keep keyboard users on a control. */}
+              {/* The focused "Välj fil" button just unmounted; keep keyboard users on a control. */}
+              {/* oxlint-disable-next-line jsx-a11y/no-autofocus */}
               <button type="button" className="button outline cancel" onClick={() => abort.current?.abort()} autoFocus>
                 Avbryt
               </button>

@@ -45,6 +45,7 @@ npm install
 npm run dev        # utvecklingsserver på localhost:5173
 npm test           # Vitest: konverterare, CSP, service worker, /api/event
 npm run test:e2e   # Playwright mot en färsk build (första gången: npx playwright install chromium webkit firefox)
+npm run lint       # Oxlint: hooks- och tillgänglighetsregler
 npm run build      # build till dist/ och storleksrapport per fil
 ```
 
@@ -86,6 +87,7 @@ npm install
 npm run dev        # dev server on localhost:5173
 npm test           # Vitest: converters, CSP, service worker, /api/event
 npm run test:e2e   # Playwright against a fresh build (first time: npx playwright install chromium webkit firefox)
+npm run lint       # Oxlint: hooks and accessibility rules
 npm run build      # build to dist/ and a size report per file
 ```
 

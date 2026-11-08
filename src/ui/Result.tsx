@@ -84,6 +84,8 @@ export function Result({ name, result, onAgain }: { name: string; result: Conver
           {copy === "idle" ? "" : copyLabel}
         </span>
         {markdown ? (
+          // Scrollable, so it must take focus for keyboard scrolling (WCAG 2.1.1).
+          // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex
           <pre className="markdown" tabIndex={0} aria-label="Resultat i Markdown">
             {markdown}
           </pre>
