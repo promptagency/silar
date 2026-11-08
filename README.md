@@ -3,8 +3,8 @@
 </p>
 
 <p align="center">
-  <strong>Från dokument till AI-redo text, utan att filen lämnar enheten.</strong><br>
-  From document to AI-ready text, without the file leaving your device.
+  <strong>Sila fram texten. Spara dina tokens.</strong><br>
+  Strain out the text. Save your tokens.
 </p>
 
 <p align="center"><a href="https://silar.app">silar.app</a></p>
