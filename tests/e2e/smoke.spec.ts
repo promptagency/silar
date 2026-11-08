@@ -41,6 +41,21 @@ test("Kopiera puts the whole result on the clipboard", async ({ page, context, b
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(await result.textContent());
 });
 
+test("a very large result shows only its start, and Kopiera still takes all of it", async ({ page, context, browserName }) => {
+  test.skip(browserName !== "chromium", "clipboard permissions are Chromium only");
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.goto("/");
+  const rows = Array.from({ length: 30_000 }, (_, i) => `rad ${i};en text som fyller ut raden`);
+  await page.locator('input[type="file"]').setInputFiles({ name: "stor.csv", mimeType: "text/csv", buffer: Buffer.from(rows.join("\n")) });
+  const result = page.getByLabel("Resultat i Markdown");
+  await expect(result).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByText("Visar de första")).toBeVisible();
+  expect((await result.textContent())?.length).toBe(200_000);
+  await page.getByRole("button", { name: "Kopiera" }).click();
+  await expect(page.getByRole("button", { name: "Kopierat." })).toBeVisible();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toContain("rad 29999");
+});
+
 for (const [file, expected] of CASES) {
   test(`converts ${file} in the browser, same origin only`, async ({ page, baseURL }) => {
     const foreign = watchForeign(page, new URL(baseURL!).origin);
@@ -56,6 +71,34 @@ test("a scanned PDF shows the warning instead of a result", async ({ page }) => 
   await page.goto("/");
   await page.locator('input[type="file"]').setInputFiles(FIXTURES + "09-pdf-skannad.pdf");
   await expect(page.getByRole("heading", { name: "Ingen text att sila" })).toBeVisible({ timeout: 30_000 });
+});
+
+test("offline, a file type not opened before does not blame the file", async ({ page, context, browserName }) => {
+  test.skip(browserName === "firefox", "under Playwright's offline mode Firefox still loads the reader, so the file converts");
+  await page.goto("/");
+  await context.setOffline(true);
+  await page.locator('input[type="file"]').setInputFiles(FIXTURES + "06-rapport-flera-sidor.pdf");
+  await expect(page.getByRole("heading", { name: "Det gick inte att sila filen" })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByText("Läsaren för PDF har inte hämtats än")).toBeVisible();
+  await expect(page.getByText("skadad")).toHaveCount(0);
+});
+
+test.describe("an older browser", () => {
+  // Without a service worker every script request reaches the route below.
+  test.use({ serviceWorkers: "block" });
+
+  test("converts a PDF without Promise.try", async ({ page, browserName }) => {
+    test.skip(browserName !== "chromium", "one engine is enough: this checks which pdf.js build is loaded");
+    // Once per page or worker: a later chunk must not delete the polyfill an earlier one installed.
+    const removeOnce = "if (!self.__removed) { self.__removed = true; delete Promise.try; }\n";
+    await page.route(/\/assets\/.*\.m?js$/, async (route) => {
+      const res = await route.fetch();
+      await route.fulfill({ response: res, body: removeOnce + (await res.text()) });
+    });
+    await page.goto("/");
+    await page.locator('input[type="file"]').setInputFiles(FIXTURES + "06-rapport-flera-sidor.pdf");
+    await expect(page.locator("pre.markdown[tabindex]")).toContainText("Verksamhetsrapport 2026", { timeout: 30_000 });
+  });
 });
 
 test("a mixed PDF shows the page warning above the result", async ({ page }) => {

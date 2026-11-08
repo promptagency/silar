@@ -52,3 +52,32 @@ it("numbers buAutoNum paragraphs per level and nests by the parent's marker widt
     "## Bild 1: Plan\n\n1. Kartlägg\n   1. Intervjuer\n   2. Enkät\n2. Bygg\n   - Testa\n3. Lansera\n\n4. Fortsätt\n5. Avsluta",
   );
 });
+
+it("reads SmartArt as a nested list in the diagram's own order", async () => {
+  const pt = (id: string, text: string, type = "") => `<dgm:pt modelId="${id}"${type}><dgm:t><a:p><a:r><a:t>${text}</a:t></a:r></a:p></dgm:t></dgm:pt>`;
+  const cxn = (src: string, dest: string, ord: number, type = "") => `<dgm:cxn modelId="c${dest}"${type} srcId="${src}" destId="${dest}" srcOrd="${ord}" destOrd="0"/>`;
+  const dgm = 'xmlns:dgm="http://schemas.openxmlformats.org/drawingml/2006/diagram" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"';
+  const frame = `<p:graphicFrame><a:graphic><a:graphicData><dgm:relIds ${dgm} r:dm="rD"/></a:graphicData></a:graphic></p:graphicFrame>`;
+  const zip = zipSync({
+    "ppt/presentation.xml": strToU8(`<p:presentation ${NS}><p:sldIdLst><p:sldId id="256" r:id="rA"/></p:sldIdLst></p:presentation>`),
+    "ppt/_rels/presentation.xml.rels": strToU8(`<Relationships>${rel("rA", "slides/slide1.xml")}</Relationships>`),
+    "ppt/slides/slide1.xml": strToU8(slide(sp('<p:ph type="title"/>', "<a:p><a:r><a:t>Process</a:t></a:r></a:p>") + frame)),
+    "ppt/slides/_rels/slide1.xml.rels": strToU8(`<Relationships>${rel("rD", "../diagrams/data1.xml")}</Relationships>`),
+    "ppt/diagrams/data1.xml": strToU8(
+      `<dgm:dataModel ${dgm}><dgm:ptLst>${pt("d", "", ' type="doc"')}${pt("2", "Andra")}${pt("11", "Underpunkt")}${pt("1", "Första")}${pt("p", "Inte med", ' type="pres"')}</dgm:ptLst>` +
+        `<dgm:cxnLst>${cxn("d", "2", 1)}${cxn("d", "1", 0)}${cxn("1", "11", 0)}${cxn("1", "p", 0, ' type="presOf"')}</dgm:cxnLst></dgm:dataModel>`,
+    ),
+  });
+  const { markdown } = await convertPptx(zip);
+  expect(markdown).toBe("## Bild 1: Process\n\n- Första\n  - Underpunkt\n- Andra");
+});
+
+it("decodes letters written as number codes, once", async () => {
+  const zip = zipSync({
+    "ppt/presentation.xml": strToU8(`<p:presentation ${NS}><p:sldIdLst><p:sldId id="256" r:id="rA"/></p:sldIdLst></p:presentation>`),
+    "ppt/_rels/presentation.xml.rels": strToU8(`<Relationships>${rel("rA", "slides/slide1.xml")}</Relationships>`),
+    "ppt/slides/slide1.xml": strToU8(slide(sp("", "<a:p><a:r><a:t>F&#246;rs&#xE4;ljning &amp;#246;</a:t></a:r></a:p>"))),
+  });
+  const { markdown } = await convertPptx(zip);
+  expect(markdown).toBe("## Bild 1\n\nFörsäljning &#246;");
+});

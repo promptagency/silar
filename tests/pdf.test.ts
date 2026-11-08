@@ -1,10 +1,39 @@
 import { describe, expect, it } from "vitest";
+import { convert } from "../src/convert/index.ts";
 import { removeFurniture } from "../src/convert/pdf/furniture.ts";
 import { bodySize, headingLevels } from "../src/convert/pdf/headings.ts";
 import { groupLines, type Item, joinText, type Line, readingOrder, tableRows } from "../src/convert/pdf/layout.ts";
 
 const line = (text: string, y: number, size = 10): Line => ({ text, x: 50, y, size });
 const H = 842;
+
+describe("a page drawn sideways", () => {
+  /** A one-page PDF with these pieces of text, each [matrix, x, y, text]. */
+  function pdf(pieces: [string, number, number, string][], pageExtra = ""): ArrayBuffer {
+    const stream = `BT /F1 12 Tf\n${pieces.map(([m, x, y, s]) => `${m} ${x} ${y} Tm (${s}) Tj`).join("\n")}\nET`;
+    const objects = [
+      "<< /Type /Catalog /Pages 2 0 R >>",
+      "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] ${pageExtra} /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>`,
+      `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`,
+      "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+    ];
+    const body = `%PDF-1.4\n${objects.map((o, i) => `${i + 1} 0 obj\n${o}\nendobj`).join("\n")}\ntrailer\n<< /Size 6 /Root 1 0 R >>`;
+    return new TextEncoder().encode(body).buffer as ArrayBuffer;
+  }
+  const expected = "| Namn | Stad |\n| --- | --- |\n| Anna | Lund |\n| Bo | Umea |";
+  const rows = [["Namn", "Stad"], ["Anna", "Lund"], ["Bo", "Umea"]];
+
+  it("reads text running up the page as rows, also with /Rotate 90", async () => {
+    const pieces = rows.flatMap(([a, b], r): [string, number, number, string][] => [["0 1 -1 0", 100 + r * 20, 100, a], ["0 1 -1 0", 100 + r * 20, 300, b]]);
+    expect((await convert({ name: "s.pdf", data: pdf(pieces, "/Rotate 90") })).markdown).toBe(expected);
+  });
+
+  it("reads text running down the page as rows", async () => {
+    const pieces = rows.flatMap(([a, b], r): [string, number, number, string][] => [["0 -1 1 0", 500 - r * 20, 700, a], ["0 -1 1 0", 500 - r * 20, 500, b]]);
+    expect((await convert({ name: "s.pdf", data: pdf(pieces) })).markdown).toBe(expected);
+  });
+});
 
 describe("groupLines", () => {
   it("puts pieces on one baseline in x order, with a space only at a real gap", () => {

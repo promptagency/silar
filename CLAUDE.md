@@ -16,7 +16,7 @@ Silar is a standalone product with its own repo, domain and release. It shares n
   - xlsx: SheetJS community edition, installed from the pinned SheetJS CDN tarball URL in package.json (the npm registry version is outdated). If the Cloudflare Pages build cannot fetch it, vendor the `.tgz` into `vendor/`
   - csv: own parser, with encoding and delimiter detection
   - pptx: `fflate` + `fast-xml-parser` (no DOMParser, it does not exist in Node)
-  - pdf: `pdfjs-dist`, worker file served from the app's own domain; use the legacy build in Node tests
+  - pdf: `pdfjs-dist`, worker file served from the app's own domain; use the legacy build everywhere, so PDFs also work in older browsers and in Node
 - The UI runs `convert()` inside a Web Worker so large files never block the page
 - Tests: Vitest for converters, Playwright for one end-to-end smoke test
 

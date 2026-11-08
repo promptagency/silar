@@ -3,6 +3,9 @@ import type { ConvertResult } from "../convert/types.ts";
 import { CheckIcon, ShareIcon, WarningIcon } from "./icons.tsx";
 import { approxTokens, extent, markdownName, notices, num, pdfTokens } from "./text.ts";
 
+// Far more than anyone reads on screen; laying out tens of millions of characters freezes the page.
+const PREVIEW_CHARS = 200_000;
+
 function download(name: string, text: string) {
   const url = URL.createObjectURL(new Blob([text], { type: "text/markdown;charset=utf-8" }));
   const a = document.createElement("a");
@@ -67,6 +70,7 @@ export function Result({ name, result, onAgain }: { name: string; result: Conver
                 Silat.
               </h2>
               <p className="result-facts">{facts.join(" · ")}</p>
+              {markdown.length > PREVIEW_CHARS && <p className="result-facts">Visar de första {num(PREVIEW_CHARS)} tecknen. Kopiera eller spara får med allt.</p>}
             </div>
           </div>
           <div className="result-actions">
@@ -89,7 +93,7 @@ export function Result({ name, result, onAgain }: { name: string; result: Conver
           // Scrollable, so it must take focus for keyboard scrolling (WCAG 2.1.1).
           // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex
           <pre className="markdown" tabIndex={0} aria-label="Resultat i Markdown">
-            {markdown}
+            {markdown.slice(0, PREVIEW_CHARS)}
           </pre>
         ) : (
           <p className="markdown empty">Filen innehöll ingen text att sila.</p>

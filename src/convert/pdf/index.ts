@@ -4,19 +4,14 @@
 //
 // pdf.js gets the bytes and nothing else: no font loading or fetching.
 // In the browser the caller sets GlobalWorkerOptions (see docs/decisions/0001).
+// The legacy build, in Node and browsers alike: the modern one needs features
+// only recent browsers have (Promise.try: Chrome 128, Safari 18.2).
+import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
 import type { ConvertResult, Warning } from "../types.ts";
 import { removeFurniture } from "./furniture.ts";
 import { bodySize, headingLevels } from "./headings.ts";
 import { table } from "../markdown.ts";
-import { type Cell, groupLines, type Item, joinText, type Line, median, readingOrder, tableRows } from "./layout.ts";
-
-type PdfJs = typeof import("pdfjs-dist");
-
-// Node needs pdf.js's legacy build. A variable specifier keeps Vite from
-// bundling it into the browser build.
-const LEGACY = "pdfjs-dist/legacy/build/pdf.mjs";
-const inNode = !!(globalThis as { process?: { versions?: { node?: string } } }).process?.versions?.node && !("window" in globalThis) && !("WorkerGlobalScope" in globalThis);
-const loadPdfJs = (): Promise<PdfJs> => (inNode ? import(/* @vite-ignore */ LEGACY) : import("pdfjs-dist"));
+import { type Cell, groupLines, type Item, joinText, type Line, median, readingOrder, tableRows, turnSideways } from "./layout.ts";
 
 type Block =
   | { kind: "heading"; level: number; text: string }
@@ -27,7 +22,6 @@ type Block =
 const SENTENCE_END = /[.!?:;»”")\]]$/;
 
 export async function convertPdf(bytes: Uint8Array): Promise<ConvertResult> {
-  const pdfjs = await loadPdfJs();
   const images = new Set<number>([pdfjs.OPS.paintImageXObject, pdfjs.OPS.paintInlineImageXObject, pdfjs.OPS.paintImageMaskXObject, pdfjs.OPS.paintImageXObjectRepeat]);
   const task = pdfjs.getDocument({
     data: bytes,
@@ -44,16 +38,19 @@ export async function convertPdf(bytes: Uint8Array): Promise<ConvertResult> {
     const pages: { lines: Line[]; height: number; scanned: boolean }[] = [];
     for (let n = 1; n <= doc.numPages; n++) {
       const page = await doc.getPage(n);
-      const items: Item[] = [];
+      const drawn: (Item & { a: number; b: number })[] = [];
       for (const it of (await page.getTextContent()).items) {
         if (!("str" in it)) continue;
         const [a, b, , , x, y] = it.transform as number[];
-        items.push({ str: it.str, x, y, width: it.width, size: Math.round(Math.hypot(a, b) * 2) / 2 });
+        drawn.push({ str: it.str, x, y, width: it.width, size: Math.round(Math.hypot(a, b) * 2) / 2, a, b });
       }
-      const lines = readingOrder(items, page.getViewport({ scale: 1 }).width).flatMap(groupLines);
+      // Text positions are in the page's own box, which /Rotate does not change.
+      const viewport = page.getViewport({ scale: 1 });
+      const { items, width, height } = turnSideways(drawn, page.view[2], page.view[3]) ?? { items: drawn, width: viewport.width, height: viewport.height };
+      const lines = readingOrder(items, width).flatMap(groupLines);
       // Only text-less pages are checked for images: that is what a scan looks like.
       const scanned = lines.length === 0 && (await page.getOperatorList()).fnArray.some((op) => images.has(op));
-      pages.push({ lines, height: page.getViewport({ scale: 1 }).height, scanned });
+      pages.push({ lines, height, scanned });
       page.cleanup();
     }
 

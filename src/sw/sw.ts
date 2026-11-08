@@ -50,10 +50,8 @@ self.addEventListener("activate", (event) => {
       const cache = await caches.open(CACHE);
       const stored = await cache.match(MANIFEST_KEY);
       const previous: SwManifest = stored ? await stored.json() : {};
-      // Re-activating the same build must not forget the build before it.
-      const before = JSON.stringify(previous) === JSON.stringify(MANIFEST) ? {} : previous;
       const keys = (await cache.keys()).map((r) => r.url);
-      await Promise.all(staleKeys(keys, MANIFEST, before).map((url) => cache.delete(url)));
+      await Promise.all(staleKeys(keys, MANIFEST, previous).map((url) => cache.delete(url)));
       await cache.put(MANIFEST_KEY, Response.json(MANIFEST));
       await self.clients.claim();
     })(),

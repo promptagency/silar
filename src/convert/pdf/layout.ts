@@ -74,6 +74,26 @@ export function groupLines(items: Item[]): Line[] {
 }
 
 /**
+ * A page whose text mostly runs up or down (a landscape page in a portrait
+ * box, as some printer drivers write them), turned so it reads left to right.
+ * Null for an ordinary page. `a` and `b` are the text's direction from pdf.js.
+ * Width and height are of the page before turning, in PDF units.
+ */
+export function turnSideways<T extends Item & { a: number; b: number }>(items: T[], width: number, height: number): { items: T[]; width: number; height: number } | null {
+  let flat = 0;
+  let up = 0;
+  let down = 0;
+  for (const i of items) {
+    if (Math.abs(i.a) >= Math.abs(i.b)) flat += i.str.length;
+    else if (i.b > 0) up += i.str.length;
+    else down += i.str.length;
+  }
+  if (flat >= up + down) return null;
+  const turned = items.map((i) => (up >= down ? { ...i, x: i.y, y: width - i.x } : { ...i, x: height - i.y, y: i.x }));
+  return { items: turned, width: height, height: width };
+}
+
+/**
  * Splits a page into groups in reading order. With two columns, rows that
  * stay clear of the gutter are read left column first, then right; a row
  * crossing the gutter (a title, a full-width section) ends that run.
@@ -107,7 +127,8 @@ export function readingOrder(items: Item[], pageWidth: number): Item[][] {
 }
 
 /** Table rows as cell texts, cells put under shared column starts. */
-export function tableRows(lines: Cell[][], tolerance = 6): string[][] {
+export function tableRows(lines: Cell[][]): string[][] {
+  const tolerance = 6;
   const starts: number[] = [];
   for (const x of lines.flat().map((c) => c.x).sort((a, b) => a - b)) if (!starts.length || x - starts.at(-1)! > tolerance) starts.push(x);
   return lines.map((cells) => {
