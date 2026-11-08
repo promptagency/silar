@@ -93,9 +93,13 @@ test("a file dropped anywhere on the page converts, also a second time", async (
       for (const type of ["dragenter", "dragover", "drop"]) document.body.dispatchEvent(new DragEvent(type, { dataTransfer: dt, bubbles: true }));
     }, bytes);
   await page.goto("/");
-  // React may render after the load event; the drop listener is attached once the app is up.
+  // The drop listener is attached in an effect after the first paint, which on slow CI runners can
+  // come after the button shows. Drop again until the app leaves its idle state.
   await expect(page.getByRole("button", { name: /^Välj (fil|dokument)$/ })).toBeVisible();
-  await drop([...csv]);
+  await expect(async () => {
+    await drop([...csv]);
+    await expect(page.locator(".workspace.idle")).toHaveCount(0, { timeout: 1000 });
+  }).toPass({ timeout: 15_000 });
   // The first file also loads the CSV reader: slow on CI runners, as in the other conversion tests.
   await expect(page.getByLabel("Resultat i Markdown")).toContainText("| Flytväst barn | 12 | 449,50 |", { timeout: 30_000 });
   // A second file replaces the result directly, no "Sila en till" in between.
