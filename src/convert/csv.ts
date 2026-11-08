@@ -56,6 +56,8 @@ export function sniff(text: string): string {
     const widths = parse(sample, d).slice(0, 20).map((r) => r.length);
     if (widths.length === 0 || widths[0] < 2) continue;
     const agree = widths.filter((w) => w === widths[0]).length / widths.length;
+    // An even split on ";" settles it: Swedish decimal commas would otherwise out-count it.
+    if (d === ";" && agree === 1) return d;
     const score = widths[0] * agree * agree;
     if (score > bestScore) {
       best = d;

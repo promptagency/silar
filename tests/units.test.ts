@@ -40,8 +40,69 @@ it("says 1 formel, not 1 formler", async () => {
   expect(r.warnings[0].message).toMatch(/^1 formel saknar/);
 });
 
+it("shows Excel's built-in date and date-time formats the Swedish way", async () => {
+  const when = 46024 + 9 / 24 + 5 / 1440; // 2026-01-02 09:05
+  const ws: XLSX.WorkSheet = { "!ref": "A1:B1", A1: { t: "n", v: when, z: "m/d/yy" }, B1: { t: "n", v: when, z: "m/d/yy h:mm" } };
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Blad1");
+  const { markdown } = await convertXlsx(new Uint8Array(XLSX.write(wb, { type: "array", bookType: "xlsx" })));
+  expect(markdown).toContain("| 2026-01-02 | 2026-01-02 09:05 |");
+});
+
+it("counts dates from 1904 in a workbook set to that date system", async () => {
+  const ws: XLSX.WorkSheet = { "!ref": "A1:B1", A1: { t: "s", v: "Datum" }, B1: { t: "n", v: 46024, z: "yyyy-mm-dd" } };
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Blad1");
+  wb.Workbook = { ...wb.Workbook, WBProps: { date1904: true } };
+  const { markdown } = await convertXlsx(new Uint8Array(XLSX.write(wb, { type: "array", bookType: "xlsx" })));
+  expect(markdown).toContain("| Datum | 2030-01-03 |");
+});
+
 it("keeps a lone carriage return (old Mac CSV) inside its table row", () => {
   expect(table([["a"], ["rad ett\rrad två"]])).toBe("| a |\n| --- |\n| rad ett rad två |");
+});
+
+/** Runs convert() on a minimal Word file with this as its document body. */
+function convertWordBody(body: string) {
+  const files = zipSync({
+    "[Content_Types].xml": strToU8('<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>'),
+    "_rels/.rels": strToU8('<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>'),
+    "word/document.xml": strToU8(`<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${body}</w:body></w:document>`),
+  });
+  return convert({ name: "t.docx", data: files.buffer as ArrayBuffer });
+}
+
+describe("docx hidden text", () => {
+  const run = (text: string, props = "") => `<w:r><w:rPr>${props}</w:rPr><w:t xml:space="preserve">${text}</w:t></w:r>`;
+
+  it("leaves out a run marked hidden and keeps the text around it", async () => {
+    const { markdown } = await convertWordBody(`<w:p>${run("Synlig ")}${run("HEMLIG ", "<w:b/><w:vanish/>")}${run("text")}</w:p>`);
+    expect(markdown).toBe("Synlig text");
+  });
+
+  it("keeps a run whose hidden setting is switched off", async () => {
+    const { markdown } = await convertWordBody(`<w:p>${run("Kvar", '<w:vanish w:val="0"/>')}</w:p>`);
+    expect(markdown).toBe("Kvar");
+  });
+});
+
+describe("docx table merged downward", () => {
+  // "^" starts a downward merge with the text after it, "v" continues one.
+  const tc = (s: string) => {
+    const merge = s[0] === "^" ? '<w:vMerge w:val="restart"/>' : s === "v" ? "<w:vMerge/>" : "";
+    return `<w:tc><w:tcPr>${merge}</w:tcPr><w:p><w:r><w:t>${s === "v" ? "" : s.replace("^", "")}</w:t></w:r></w:p></w:tc>`;
+  };
+  const docx = (rows: string[][]) => convertWordBody(`<w:tbl>${rows.map((r) => `<w:tr>${r.map(tc).join("")}</w:tr>`).join("")}</w:tbl>`);
+
+  it("keeps later cells in their columns when the first column is merged", async () => {
+    const { markdown } = await docx([["Avdelning", "Namn", "Lön"], ["^Ekonomi", "Anna", "100"], ["v", "Bo", "200"]]);
+    expect(markdown).toBe("| Avdelning | Namn | Lön |\n| --- | --- | --- |\n| Ekonomi | Anna | 100 |\n|  | Bo | 200 |");
+  });
+
+  it("keeps later cells in their columns when a middle column is merged over three rows", async () => {
+    const { markdown } = await docx([["A", "B", "C"], ["a1", "^x", "c1"], ["a2", "v", "c2"], ["a3", "v", "c3"]]);
+    expect(markdown).toBe("| A | B | C |\n| --- | --- | --- |\n| a1 | x | c1 |\n| a2 |  | c2 |\n| a3 |  | c3 |");
+  });
 });
 
 describe("convert", () => {
@@ -73,6 +134,14 @@ describe("csv", () => {
     expect(sniff("a,b,c\n1,2,3\n")).toBe(",");
     expect(sniff("a;b\n1,5;2,5\n")).toBe(";");
     expect(sniff("a\tb\n1\t2\n")).toBe("\t");
+  });
+
+  it("picks the semicolon for Swedish decimals without a header row", () => {
+    expect(sniff("1,5;2,5;3,5\n4,5;5,5;6,5\n")).toBe(";");
+  });
+
+  it("keeps the comma when semicolons do not split the rows evenly", () => {
+    expect(sniff("a;x,b,c\n1,2,3\n4,5,6\n")).toBe(",");
   });
 });
 

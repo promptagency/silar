@@ -58,6 +58,24 @@ test("a scanned PDF shows the warning instead of a result", async ({ page }) => 
   await expect(page.getByRole("heading", { name: "Ingen text att sila" })).toBeVisible({ timeout: 30_000 });
 });
 
+test.describe("an older browser", () => {
+  // Without a service worker every script request reaches the route below.
+  test.use({ serviceWorkers: "block" });
+
+  test("converts a PDF without Promise.try", async ({ page, browserName }) => {
+    test.skip(browserName !== "chromium", "one engine is enough: this checks which pdf.js build is loaded");
+    // Once per page or worker: a later chunk must not delete the polyfill an earlier one installed.
+    const removeOnce = "if (!self.__removed) { self.__removed = true; delete Promise.try; }\n";
+    await page.route(/\/assets\/.*\.m?js$/, async (route) => {
+      const res = await route.fetch();
+      await route.fulfill({ response: res, body: removeOnce + (await res.text()) });
+    });
+    await page.goto("/");
+    await page.locator('input[type="file"]').setInputFiles(FIXTURES + "06-rapport-flera-sidor.pdf");
+    await expect(page.locator("pre.markdown[tabindex]")).toContainText("Verksamhetsrapport 2026", { timeout: 30_000 });
+  });
+});
+
 test("a mixed PDF shows the page warning above the result", async ({ page }) => {
   await page.goto("/");
   await page.locator('input[type="file"]').setInputFiles(FIXTURES + "10-pdf-blandad.pdf");

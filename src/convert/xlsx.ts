@@ -7,19 +7,22 @@ import * as XLSX from "xlsx";
 import { table } from "./markdown.ts";
 import type { ConvertResult, Warning } from "./types.ts";
 
-// Built-in format 14 is the locale's short date. SheetJS reports it as
-// US "m/d/yy"; Swedish Excel shows ISO dates.
-const LOCALE_SHORT_DATE = "m/d/yy";
+// Built-in formats 14 and 22 are the locale's short date and date with time.
+// SheetJS reports them in US form; Swedish Excel shows ISO dates.
+const LOCALE_DATES = new Map<unknown, string>([
+  ["m/d/yy", "yyyy-mm-dd"],
+  ["m/d/yy h:mm", "yyyy-mm-dd hh:mm"],
+]);
 
-function shown(c: XLSX.CellObject | undefined, formulas: { count: number }): string {
+function shown(c: XLSX.CellObject | undefined, formulas: { count: number }, date1904: boolean | undefined): string {
   if (!c) return "";
   if (c.f && (c.t === "z" || c.v === undefined)) {
     formulas.count++;
     return `=${c.f}`;
   }
   if (c.t === "n" && typeof c.v === "number") {
-    const fmt = c.z === LOCALE_SHORT_DATE ? "yyyy-mm-dd" : (c.z ?? "General");
-    const text: string = XLSX.SSF.format(fmt, c.v);
+    const fmt = LOCALE_DATES.get(c.z) ?? c.z ?? "General";
+    const text: string = XLSX.SSF.format(fmt, c.v, { date1904 });
     if (XLSX.SSF.is_date(fmt)) return text;
     // shortcut: swaps en-US separators to Swedish; assumes no literal "," or "." in custom formats.
     return text.replace(/[,.]/g, (ch) => (ch === "," ? " " : ","));
@@ -53,6 +56,8 @@ export async function convertXlsx(bytes: Uint8Array): Promise<ConvertResult> {
   const book = XLSX.read(bytes, { cellNF: true, cellFormula: true, sheetStubs: true, cellStyles: true });
   const visible = book.SheetNames.filter((_, i) => !book.Workbook?.Sheets?.[i]?.Hidden);
   const formulas = { count: 0 };
+  // Some workbooks, mostly from old Mac Excel, count dates from 1904.
+  const date1904 = book.Workbook?.WBProps?.date1904;
   const sections: string[] = [];
   for (const name of visible) {
     const sheet = book.Sheets[name];
@@ -64,7 +69,7 @@ export async function convertXlsx(bytes: Uint8Array): Promise<ConvertResult> {
     for (let r = range.s.r; r <= range.e.r; r++) {
       if (hiddenRows[r]?.hidden) continue;
       const row: string[] = [];
-      for (let c = range.s.c; c <= range.e.c; c++) if (!hiddenCols[c]?.hidden) row.push(shown(sheet[XLSX.utils.encode_cell({ r, c })], formulas).trim());
+      for (let c = range.s.c; c <= range.e.c; c++) if (!hiddenCols[c]?.hidden) row.push(shown(sheet[XLSX.utils.encode_cell({ r, c })], formulas, date1904).trim());
       if (row.some(Boolean)) rows.push(row);
     }
     if (rows.length === 0) continue;
