@@ -5,7 +5,9 @@ import { FileIcon, LockIcon, WarningIcon } from "./icons.tsx";
 import { Result } from "./Result.tsx";
 import { formatName, notices } from "./text.ts";
 
-const ACCEPT = ".docx,.xlsx,.csv,.pptx,.pdf";
+declare const __APP_VERSION__: string;
+
+const ACCEPT =".docx,.xlsx,.csv,.pptx,.pdf";
 
 type State =
   | { kind: "idle" }
@@ -233,7 +235,7 @@ export function App() {
 
       <footer className="site-footer">
         <div className="wrap">
-          Ett verktyg från <a href="https://promptagency.se">Prompt Agency</a>
+          Ett verktyg från <a href="https://promptagency.se">Prompt Agency</a> · Version {__APP_VERSION__}
         </div>
       </footer>
 
