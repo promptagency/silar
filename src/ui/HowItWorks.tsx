@@ -10,7 +10,19 @@ const FAQ: [string, ReactNode][] = [
     "Hur sparar Silar tokens?",
     "En AI-tjänst som får hela filen läser också layout, bilder och dold information. Silar ger den bara texten, rubrikerna och tabellerna. I resultatet ser du ungefär hur många tokens texten blir.",
   ],
-  ["Vilka filer kan Silar läsa?", "Word (.docx), Excel (.xlsx), CSV, PowerPoint (.pptx) och PDF. Äldre .doc-, .xls- och .ppt-filer behöver sparas om i det nya formatet först."],
+  [
+    "Vilka filer kan Silar läsa?",
+    <>
+      <ul>
+        <li>Word (.docx): rubriker, listor, tabeller och länkar.</li>
+        <li>Excel (.xlsx): en tabell per flik, datum och procent som i Excel. Dolda flikar, rader och kolumner tas inte med.</li>
+        <li>CSV: även svenska Excel-exporter med semikolon.</li>
+        <li>PowerPoint (.pptx): en rubrik per bild, punktlistor och talaranteckningar.</li>
+        <li>PDF: text, rubriker och enkla tabeller. Inskannade sidor går inte att läsa.</li>
+      </ul>
+      Äldre .doc-, .xls- och .ppt-filer behöver sparas om i det nya formatet först.
+    </>,
+  ],
   ["Varför blir min PDF tom?", "Den är troligen inskannad, alltså bilder av text. Silar läser inte text i bilder. Kör textigenkänning (OCR) på filen först."],
   ["Vad är Markdown?", "Ett enkelt textformat. # betyder rubrik, - betyder punktlista och | bygger tabeller. AI-tjänster läser det bra."],
   ["Fungerar Silar utan internet?", "Ja, efter första besöket. Läsaren för varje filtyp sparas i webbläsaren första gången du öppnar en sådan fil."],

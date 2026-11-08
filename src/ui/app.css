@@ -184,14 +184,6 @@ nav button:hover {
 }
 
 /* Sections */
-main > section.wrap + section.wrap {
-  margin-top: 80px;
-}
-
-main > section > h2 {
-  font-size: 28px;
-  margin-bottom: 24px;
-}
 
 .hero {
   margin-top: 56px;
@@ -372,11 +364,20 @@ main > section > h2 {
 
 .privacy {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   margin-top: 16px;
   color: var(--color-muted);
   font-size: 15px;
+}
+
+.privacy svg {
+  flex: none;
+  margin-top: 1px;
+}
+
+.formats-line {
+  margin-top: 4px;
 }
 
 /* Warnings: never Glöd, so the drop keeps its meaning. */
@@ -488,18 +489,14 @@ main > section > h2 {
   color: rgba(246, 247, 249, 0.75);
 }
 
-/* Steps, comparison, formats */
-.steps,
-.formats {
+/* Steps, in the "Så funkar det" modal */
+.steps {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 16px;
-}
-
-.steps {
   grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
   counter-reset: step;
 }
 
@@ -521,33 +518,13 @@ main > section > h2 {
   font-weight: 700;
 }
 
-.steps h3,
-.formats h3 {
+.steps h3 {
   font-size: 18px;
   margin-bottom: 6px;
 }
 
-.steps p,
-.formats p {
+.steps p {
   color: var(--color-muted);
-}
-
-.formats li {
-  padding: 24px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-panel);
-}
-
-.formats {
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-}
-
-.formats .ext {
-  font-family: var(--font-mono);
-  font-size: 14px;
-  color: var(--color-accent);
-  margin-bottom: 8px;
 }
 
 .site-footer {
@@ -604,10 +581,6 @@ main > section > h2 {
     margin-top: 32px;
   }
 
-  main > section.wrap + section.wrap {
-    margin-top: 56px;
-  }
-
   /* One column: the upload before a file, the result after it. */
   .workspace {
     display: block;
@@ -616,6 +589,12 @@ main > section > h2 {
   .workspace.idle .output,
   .workspace:not(.idle) .intake {
     display: none;
+  }
+
+  /* Only the button is left on phones: no desktop height, no sticking. */
+  .intake {
+    position: static;
+    min-height: 0;
   }
 
   /* No drag-and-drop on phones: one full-width button. */
@@ -633,8 +612,7 @@ main > section > h2 {
     width: 100%;
   }
 
-  .steps,
-  .formats {
+  .steps {
     grid-template-columns: 1fr;
   }
 
@@ -646,10 +624,6 @@ main > section > h2 {
 
   .modal-head {
     padding-top: 20px;
-  }
-
-  main > section > h2 {
-    font-size: 24px;
   }
 
   .result-head {
@@ -691,10 +665,4 @@ main > section > h2 {
   .phone-bar .button.primary {
     flex: 1;
   }
-}
-
-/* Long Swedish compounds ("talaranteckningar") in narrow format cards. */
-.formats p {
-  hyphens: auto;
-  overflow-wrap: break-word;
 }

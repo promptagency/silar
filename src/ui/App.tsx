@@ -116,7 +116,6 @@ export function App() {
             <button type="button" aria-haspopup="dialog" onClick={() => howItWorks.current?.showModal()}>
               Så funkar det
             </button>
-            <a href="#format">Format</a>
           </nav>
         </div>
       </header>
@@ -170,42 +169,15 @@ export function App() {
             </div>
           </div>
 
-          <p className="privacy">
+          <div className="privacy">
             <LockIcon />
-            Filen lämnar aldrig din enhet. Allt sker här i webbläsaren.
-          </p>
+            <div>
+              <p>Filen lämnar aldrig din enhet. Allt sker här i webbläsaren.</p>
+              <p className="formats-line">Läser Word (.docx), Excel (.xlsx), CSV, PowerPoint (.pptx) och PDF.</p>
+            </div>
+          </div>
         </section>
 
-        <section className="wrap" id="format" aria-labelledby="format-title">
-          <h2 id="format-title">Format</h2>
-          <ul className="formats">
-            <li>
-              <h3>Word</h3>
-              <p className="ext">.docx</p>
-              <p>Rubriker, listor, tabeller och länkar.</p>
-            </li>
-            <li>
-              <h3>Excel</h3>
-              <p className="ext">.xlsx</p>
-              <p>En tabell per flik. Datum och procent som i Excel.</p>
-            </li>
-            <li>
-              <h3>CSV</h3>
-              <p className="ext">.csv</p>
-              <p>Även svenska Excel-exporter med semikolon.</p>
-            </li>
-            <li>
-              <h3>PowerPoint</h3>
-              <p className="ext">.pptx</p>
-              <p>En rubrik per bild, punktlistor och talaranteckningar.</p>
-            </li>
-            <li>
-              <h3>PDF</h3>
-              <p className="ext">.pdf</p>
-              <p>Text, rubriker och enkla tabeller. Inskannade sidor går inte att läsa.</p>
-            </li>
-          </ul>
-        </section>
       </main>
 
       <footer className="site-footer">
