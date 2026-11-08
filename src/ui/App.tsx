@@ -114,7 +114,7 @@ export function App() {
       <main>
         <section className="wrap hero" aria-labelledby="hero-title">
           <h1 id="hero-title">Silar fram texten. Resten stannar kvar.</h1>
-          <p className="sub">Från dokument till AI-redo text, utan att filen lämnar datorn.</p>
+          <p className="sub">Från dokument till AI-redo text, utan att filen lämnar enheten.</p>
 
           <input ref={input} type="file" accept={ACCEPT} hidden onChange={(e) => void handle(e.target.files?.[0])} />
 

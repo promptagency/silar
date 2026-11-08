@@ -1,7 +1,7 @@
 {
   "name": "Silar",
   "short_name": "Silar",
-  "description": "Från dokument till AI-redo text, utan att filen lämnar datorn.",
+  "description": "Från dokument till AI-redo text, utan att filen lämnar enheten.",
   "lang": "sv",
   "start_url": "/",
   "display": "standalone",

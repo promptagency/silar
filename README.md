@@ -3,8 +3,8 @@
 </p>
 
 <p align="center">
-  <strong>Från dokument till AI-redo text, utan att filen lämnar datorn.</strong><br>
-  From document to AI-ready text, without the file leaving your computer.
+  <strong>Från dokument till AI-redo text, utan att filen lämnar enheten.</strong><br>
+  From document to AI-ready text, without the file leaving your device.
 </p>
 
 <p align="center"><a href="https://silar.app">silar.app</a></p>
@@ -72,7 +72,7 @@ Silar takes the text out first and turns it into Markdown. Headings, lists and t
 
 ### Privacy
 
-- **The file never leaves your computer.** All reading happens in the browser, in a Web Worker. No server sees the file, its name or the result.
+- **The file never leaves your device.** All reading happens in the browser, in a Web Worker. No server sees the file, its name or the result.
 - **Nothing is stored.** Neither the file nor the result goes into browser storage. The service worker stores only the app's own files (the page, fonts and the readers for formats you have opened), so Silar works offline after the first visit.
 - **No other addresses.** The page's Content Security Policy allows requests to Silar's own address only. All readers and pdf.js are served from there.
 - **Anonymous visit counting.** On `silar.app`, one page view goes to Prompt Agency's self-hosted Plausible (in Finland), through `/api/event` on Silar's own address. It carries the page address (`utm_*` tags only), the previous page (origin and path only) and the site name. Never anything about the file. No cookies. Do Not Track and Global Privacy Control are honoured.
