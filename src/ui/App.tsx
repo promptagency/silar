@@ -10,11 +10,15 @@ import { approxTokens, formatName, notices, num } from "./text.ts";
 declare const __APP_VERSION__: string;
 
 const ACCEPT = ".docx,.xlsx,.csv,.pptx,.pdf";
+// shortcut: results stay in this tab's memory only (no storage, CLAUDE.md); 10 keeps memory small.
+const HISTORY_MAX = 10;
+
+type Done = { id: number; name: string; result: ConvertResult };
 
 type State =
   | { kind: "idle" }
   | { kind: "working"; name: string; reader: string | null; large: boolean }
-  | { kind: "done"; name: string; result: ConvertResult }
+  | ({ kind: "done" } & Done)
   | { kind: "failed"; message: string };
 
 // Formats whose parser has been loaded in this page load, for the "first time" text.
@@ -23,6 +27,8 @@ const loadedFormats = new Set<string>();
 export function App() {
   const [state, setState] = useState<State>({ kind: "idle" });
   const [dragging, setDragging] = useState(false);
+  const [history, setHistory] = useState<Done[]>([]);
+  const nextId = useRef(0);
   const input = useRef<HTMLInputElement>(null);
   const abort = useRef<AbortController | null>(null);
   const howItWorks = useRef<HTMLDialogElement>(null);
@@ -49,7 +55,10 @@ export function App() {
       return;
     }
     if (format) loadedFormats.add(format);
-    setState({ kind: "done", name: file.name, result: outcome.result });
+    const done = { id: nextId.current++, name: file.name, result: outcome.result };
+    // Only results worth going back to: no blocked or empty ones.
+    if (done.result.markdown) setHistory((h) => [done, ...h].slice(0, HISTORY_MAX));
+    setState({ kind: "done", ...done });
   }
 
   function again() {
@@ -140,6 +149,31 @@ export function App() {
                 </button>
                 <p className="dropzone-formats">Word, Excel, CSV, PowerPoint eller PDF</p>
               </div>
+              <p className="privacy">
+                <LockIcon />
+                Filen lämnar aldrig din enhet. Allt sker här i webbläsaren.
+              </p>
+              {history.length > 0 && (
+                <section className="history" aria-labelledby="history-title">
+                  <h2 id="history-title">Silade filer</h2>
+                  <ul>
+                    {history.map((h) => (
+                      <li key={h.id}>
+                        <button
+                          type="button"
+                          className="text-button"
+                          aria-current={state.kind === "done" && state.id === h.id ? "true" : undefined}
+                          disabled={busy}
+                          onClick={() => setState({ kind: "done", ...h })}
+                        >
+                          {h.name}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="history-note">Sparas inte. Listan försvinner när du stänger fliken.</p>
+                </section>
+              )}
             </div>
 
             <div className="output">
@@ -163,23 +197,19 @@ export function App() {
                 </div>
               )}
 
-              {state.kind === "done" && <Outcome name={state.name} result={state.result} onAgain={again} />}
+              {state.kind === "done" && <Outcome key={state.id} name={state.name} result={state.result} onAgain={again} />}
 
               {state.kind === "failed" && <Blocked title="Det gick inte att sila filen" message={state.message} onAgain={again} />}
             </div>
           </div>
 
-          <p className="privacy">
-            <LockIcon />
-            Filen lämnar aldrig din enhet. Allt sker här i webbläsaren.
-          </p>
         </section>
 
       </main>
 
       <footer className="site-footer">
         <div className="wrap">
-          Ett verktyg från <a href="https://promptagency.se">Prompt Agency</a> · Version {__APP_VERSION__}
+          Ett verktyg från <a href="https://promptagency.se">Prompt Agency</a> · <a href="https://github.com/promptagency/silar">Källkod på GitHub</a> · Version {__APP_VERSION__}
         </div>
       </footer>
 
