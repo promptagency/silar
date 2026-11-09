@@ -222,5 +222,16 @@
       "# Planen"
     ],
     "tests": "A heading wrapped over two lines stays one heading. A long intro in a large font is a paragraph. Close but separate headings stay separate"
+  },
+  "22-svenska-ord.xlsx": {
+    "must_contain": [
+      "| Beslut | måndag 18 maj 2026 |",
+      "| Start | 3 mar 2026 |",
+      "| Möte | tor |",
+      "| Aktiv | SANT |",
+      "| Arkiverad | FALSKT |",
+      "| Text | Monday May |"
+    ],
+    "tests": "Month and day names in Swedish, booleans as SANT and FALSKT, ordinary text left alone"
   }
 }

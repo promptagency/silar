@@ -514,5 +514,21 @@ checks["21-pdf-radbrutna-rubriker.pdf"] = {
     "must_not_contain": ["# digitala", "# tillsammans", "# Planen"],
     "tests": "A heading wrapped over two lines stays one heading. A long intro in a large font is a paragraph. Close but separate headings stay separate"}
 
+# 22 xlsx: month names, day names and booleans as Swedish Excel shows them
+wb = Workbook()
+ws = wb.active; ws.title = "Datum"
+ws.append(["Post", "Värde"])
+for label, value, fmt in [("Beslut", date(2026, 5, 18), "[$-41D]dddd\\ d\\ mmmm\\ yyyy"), ("Start", date(2026, 3, 3), "d mmm yyyy"),
+                          ("Möte", date(2026, 10, 15), "ddd"), ("Aktiv", True, None), ("Arkiverad", False, None),
+                          ("Text", "Monday May", None)]:
+    ws.append([label, value])
+    if fmt:
+        ws.cell(ws.max_row, 2).number_format = fmt
+wb.save(OUT / "22-svenska-ord.xlsx")
+checks["22-svenska-ord.xlsx"] = {
+    "must_contain": ["| Beslut | måndag 18 maj 2026 |", "| Start | 3 mar 2026 |", "| Möte | tor |", "| Aktiv | SANT |",
+                     "| Arkiverad | FALSKT |", "| Text | Monday May |"],
+    "tests": "Month and day names in Swedish, booleans as SANT and FALSKT, ordinary text left alone"}
+
 (OUT / "checks.json").write_text(json.dumps(checks, ensure_ascii=False, indent=2), encoding="utf-8")
 print("\n".join(sorted(p.name for p in OUT.iterdir())))

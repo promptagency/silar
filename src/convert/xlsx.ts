@@ -14,6 +14,16 @@ const LOCALE_DATES = new Map<unknown, string>([
   ["m/d/yy h:mm", "yyyy-mm-dd hh:mm"],
 ]);
 
+// SheetJS writes month and day names in English, full or as three letters.
+const SWEDISH_NAMES = new Map(
+  "January januari,February februari,March mars,April april,May maj,June juni,July juli,August augusti,September september,October oktober,November november,December december,Monday måndag,Tuesday tisdag,Wednesday onsdag,Thursday torsdag,Friday fredag,Saturday lördag,Sunday söndag"
+    .split(",")
+    .flatMap((pair) => {
+      const [en, sv] = pair.split(" ");
+      return [[en, sv], [en.slice(0, 3), sv.slice(0, 3)]] as [string, string][];
+    }),
+);
+
 function shown(c: XLSX.CellObject | undefined, formulas: { count: number }, date1904: boolean | undefined): string {
   if (!c) return "";
   if (c.f && (c.t === "z" || c.v === undefined)) {
@@ -29,10 +39,12 @@ function shown(c: XLSX.CellObject | undefined, formulas: { count: number }, date
       // shortcut: SheetJS rejects some custom formats ("0 mån", "0 m²"), so the unit is lost; parse the format ourselves if that matters.
       return String(c.v).replace(".", ",");
     }
-    if (XLSX.SSF.is_date(fmt)) return text;
+    // shortcut: a format that asks for English ([$-409]) comes out Swedish too; look at the locale tag if that shows up.
+    if (XLSX.SSF.is_date(fmt)) return text.replace(/[A-Z][a-z]+/g, (word) => SWEDISH_NAMES.get(word) ?? word);
     // shortcut: swaps en-US separators to Swedish; assumes no literal "," or "." in custom formats.
     return text.replace(/[,.]/g, (ch) => (ch === "," ? " " : ","));
   }
+  if (c.t === "b") return c.v ? "SANT" : "FALSKT";
   return c.t === "z" ? "" : (c.w ?? String(c.v ?? ""));
 }
 
