@@ -1,6 +1,6 @@
 // PDF via pdf.js: text per page, running headers and footers removed,
 // headings from font size, lines joined into paragraphs, also across page
-// breaks. Pages without text but with an image are reported as scanned.
+// breaks. Pages with an image and no or hardly any text are reported as scanned.
 //
 // pdf.js gets the bytes and nothing else: no font loading or fetching.
 // In the browser the caller sets GlobalWorkerOptions (see docs/decisions/0001).
@@ -20,6 +20,9 @@ type Block =
   | { kind: "missing"; page: number };
 
 const SENTENCE_END = /[.!?:;»”")\]]$/;
+
+// Image ops carry [id, width, height] or [{ width, height, ... }].
+const imageWidth = ([first, width]: any[]): number => (typeof first === "string" ? width : first.width);
 
 export async function convertPdf(bytes: Uint8Array): Promise<ConvertResult> {
   const images = new Set<number>([pdfjs.OPS.paintImageXObject, pdfjs.OPS.paintInlineImageXObject, pdfjs.OPS.paintImageMaskXObject, pdfjs.OPS.paintImageXObjectRepeat]);
@@ -48,14 +51,16 @@ export async function convertPdf(bytes: Uint8Array): Promise<ConvertResult> {
       const viewport = page.getViewport({ scale: 1 });
       const { items, width, height } = turnSideways(drawn, page.view[2], page.view[3]) ?? { items: drawn, width: viewport.width, height: viewport.height };
       const lines = readingOrder(items, width).flatMap(groupLines);
-      // Only text-less pages are checked for images: that is what a scan looks like.
-      const scanned = lines.length === 0 && (await page.getOperatorList()).fnArray.some((op) => images.has(op));
+      // A scan has no text, or only a stamp or page number on top of a page-wide image. A cover logo beside a short title is not one.
+      const chars = lines.reduce((n, l) => n + l.text.length, 0);
+      const ops = chars < 40 ? await page.getOperatorList() : null;
+      const scanned = !!ops && ops.fnArray.some((op, i) => images.has(op) && (chars === 0 || imageWidth(ops.argsArray[i]) >= 1000));
       pages.push({ lines, height, scanned });
       page.cleanup();
     }
 
     const meta = { format: "pdf", pages: doc.numPages };
-    if (pages.every((p) => p.lines.length === 0)) {
+    if (pages.every((p) => p.scanned || p.lines.length === 0)) {
       const message = "PDF:en saknar text, den är troligen inskannad. Silar läser inte text i bilder. Kör textigenkänning (OCR) på filen först.";
       return { markdown: "", warnings: [{ code: "no_text_layer", message }], meta };
     }
@@ -72,6 +77,8 @@ export async function convertPdf(bytes: Uint8Array): Promise<ConvertResult> {
     kept.forEach((lines, i) => {
       if (pages[i].scanned) {
         warnings.push({ code: "page_without_text", page: i + 1, message: `Sida ${i + 1} saknar text, den är troligen inskannad. Den finns inte med i resultatet.` });
+        // Pushed as they are, so a stamp never joins the text of the page before or after.
+        for (const line of lines) blocks.push({ kind: "para", text: line.text });
         blocks.push({ kind: "missing", page: i + 1 });
         return;
       }

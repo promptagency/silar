@@ -369,5 +369,51 @@ checks["14-nastlade-listor.docx"] = {
                      "1. Sammanställ svar\n   1. Per avdelning\n   2. Per roll"],
     "tests": "Nested lists by numbering level (Tab in Word) and by List Number 2 style, indented under their parent item"}
 
+# 15-17 pdf: scanned pages that also carry a little real text (stamp, page number)
+def scan_with_text(c, image, text):
+    c.drawImage(image, 0, 0, width=w, height=h)
+    c.setFont("DV", 10)
+    c.drawString(380, 600, text)
+    c.showPage()
+
+
+def text_page(c, text):
+    c.setFont("DV", 10)
+    c.drawString(72, 700, text)
+    c.showPage()
+
+
+c = rl_canvas.Canvas(str(OUT / "15-pdf-skannad-stampel.pdf"), pagesize=A4)
+text_page(c, "Förvaltningen har genomfört en kartläggning utan")
+scan_with_text(c, "/tmp/scan2.jpg", "Dnr 2026/114")
+text_page(c, "Uppföljningen visar att rutinerna fungerar.")
+c.save()
+checks["15-pdf-skannad-stampel.pdf"] = {
+    "must_contain": ["utan\n\nDnr 2026/114\n\n<!-- Sida 2 saknar text -->\n\nUppföljningen"],
+    "expect_warning": "page_without_text: 2",
+    "tests": "Scanned page with a diary stamp: warned, stamp kept, not glued to the neighbouring pages"}
+
+Image.new("L", (400, 200), 120).save("/tmp/logo.jpg", quality=70)
+c = rl_canvas.Canvas(str(OUT / "16-pdf-omslag-logotyp.pdf"), pagesize=A4)
+c.drawImage("/tmp/logo.jpg", 200, 600, width=200, height=100)
+c.setFont("DVB", 18)
+c.drawString(72, 500, "Årsredovisning 2026")
+c.showPage()
+text_page(c, "Styrelsen lämnar härmed sin berättelse för året.")
+c.save()
+checks["16-pdf-omslag-logotyp.pdf"] = {
+    "must_contain": ["Årsredovisning 2026"],
+    "must_not_contain": ["saknar text"],
+    "tests": "Cover with a small logo and a short title is not a scanned page"}
+
+c = rl_canvas.Canvas(str(OUT / "17-pdf-skannad-sidnummer.pdf"), pagesize=A4)
+scan_with_text(c, "/tmp/scan1.jpg", "Sida 1 av 2")
+scan_with_text(c, "/tmp/scan2.jpg", "Sida 2 av 2")
+c.save()
+checks["17-pdf-skannad-sidnummer.pdf"] = {
+    "expect_warning": "no_text_layer",
+    "must_not_contain": ["Sida 1 av 2"],
+    "tests": "Every page scanned with only a page number on top: OCR advice, not an empty result"}
+
 (OUT / "checks.json").write_text(json.dumps(checks, ensure_ascii=False, indent=2), encoding="utf-8")
 print("\n".join(sorted(p.name for p in OUT.iterdir())))
