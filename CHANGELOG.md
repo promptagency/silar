@@ -4,6 +4,20 @@ Silar follows [Semantic Versioning](https://semver.org/): MAJOR for changes
 that break how people use Silar or the `convert()` API, MINOR for new
 features and formats, PATCH for fixes. Newest first.
 
+## 1.6.0 (2026-11-09)
+
+- PDF: answers typed into form fields come through, next to their labels.
+  Password and hidden fields are left out.
+- PDF: a scanned page with a stamp or page number on it now gets a warning
+  and the stamp is kept. If every page is like that, the result is the advice
+  to run OCR. A heading wrapped over several lines stays one heading.
+- PowerPoint: shapes hidden in the selection pane are left out.
+- Excel: one unusual number format no longer fails the whole workbook. Month
+  and day names are in Swedish, and true and false show as SANT and FALSKT.
+- CSV: Excel's `sep=` line sets the delimiter and is no longer the table
+  header. A PDF or Office file wrongly named .csv is read as what it is.
+- "Så funkar det" says that masked text in a PDF can come through.
+
 ## 1.5.0 (2026-11-08)
 
 - PowerPoint: SmartArt text comes out as a nested list. Letters some tools
