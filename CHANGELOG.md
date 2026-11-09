@@ -4,6 +4,11 @@ Silar follows [Semantic Versioning](https://semver.org/): MAJOR for changes
 that break how people use Silar or the `convert()` API, MINOR for new
 features and formats, PATCH for fixes. Newest first.
 
+## 1.6.1 (2026-11-09)
+
+- Footer link for reporting errors by email.
+- README: screenshot of the start page, and what 1.6.0 added.
+
 ## 1.6.0 (2026-11-09)
 
 - PDF: answers typed into form fields come through, next to their labels.

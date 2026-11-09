@@ -212,7 +212,7 @@ export function App() {
 
       <footer className="site-footer">
         <div className="wrap">
-          Ett verktyg från <a href="https://promptagency.se">Prompt Agency</a> · <a href="https://github.com/promptagency/silar">Källkod på GitHub</a> · Version {__APP_VERSION__}
+          Ett verktyg från <a href="https://promptagency.se">Prompt Agency</a> · <a href="https://github.com/promptagency/silar">Källkod på GitHub</a> · <a href="mailto:micke@promptagency.se?subject=Fel%20i%20Silar">Rapportera fel</a> · Version {__APP_VERSION__}
         </div>
       </footer>
 
