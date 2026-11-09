@@ -382,7 +382,9 @@ nav button:hover {
 
 /* This tab's earlier results, under the privacy line. */
 .history {
-  margin-top: 24px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-line);
 }
 
 .history h2 {
@@ -396,10 +398,16 @@ nav button:hover {
   padding: 0;
 }
 
+/* The negative margin keeps the name in line with the heading; the padding is room for the hover fill. */
 .history .text-button {
-  padding: 0;
+  margin-left: -8px;
+  border-radius: var(--radius-button);
   text-align: left;
   overflow-wrap: anywhere;
+}
+.history .text-button:hover:not(:disabled) {
+  background: var(--color-tint);
+  color: var(--color-accent);
 }
 
 .history [aria-current] {
