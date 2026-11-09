@@ -29,6 +29,8 @@ Silar plockar fram texten först och gör om den till Markdown. Rubriker, listor
 | PowerPoint (.pptx) | En rubrik per bild, punktlistor och talaranteckningar. Dolda bilder hoppas över |
 | PDF (.pdf) | Text, rubriker, två spalter och enkla tabeller. Sidhuvud, sidfot och sidnummer tas bort. Inskannade sidor går inte att läsa |
 
+En svart ruta ovanpå text i en PDF tar inte bort texten, och Silar läser den, liksom text i avstängda lager. Läs igenom resultatet innan du klistrar in det.
+
 ### Integritet
 
 - **Filen lämnar aldrig datorn.** All läsning sker i webbläsaren, i en Web Worker. Ingen server ser filen, filnamnet eller resultatet.
@@ -70,6 +72,8 @@ Silar takes the text out first and turns it into Markdown. Headings, lists and t
 | CSV (.csv) | Including Swedish Excel exports with semicolons and Windows encoding |
 | PowerPoint (.pptx) | A heading per slide, bullet lists and speaker notes. Hidden slides are left out |
 | PDF (.pdf) | Text, headings, two columns and simple tables. Running headers, footers and page numbers are removed. Scanned pages cannot be read |
+
+A black box drawn over text in a PDF does not remove the text, and Silar reads it, as it does text in switched-off layers. Read through the result before you paste it.
 
 ### Privacy
 
