@@ -126,6 +126,13 @@ describe("convert", () => {
     expect(r.markdown.startsWith("| a | b |")).toBe(true);
   });
 
+  it("uses Excel's sep= line as the delimiter, not as data", async () => {
+    const csv = async (text: string) => (await convert({ name: "a.csv", data: bytes(text).buffer as ArrayBuffer })).markdown;
+    // Left to detection, ";" would win here: it splits every line evenly.
+    expect(await csv("sep=,\nA;x,B\n1;2,3\n")).toBe("| A;x | B |\n| --- | --- |\n| 1;2 | 3 |");
+    expect(await csv("SEP=;\r\nNamn;Ort\r\nÅsa;Lerum\r\n")).toBe("| Namn | Ort |\n| --- | --- |\n| Åsa | Lerum |");
+  });
+
   it("reads UTF-8 csv without a fallback warning", async () => {
     const r = await convert({ name: "a.csv", data: bytes("Namn,Ort\nÅsa,Lerum\n").buffer });
     expect(r.warnings).toEqual([]);
