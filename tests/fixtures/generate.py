@@ -440,5 +440,34 @@ checks["18-pdf-ifylld-blankett.pdf"] = {
     "expect_warning": "page_without_text: 2",
     "tests": "Text field values in place beside their labels. Password and hidden fields left out. A long answer on a scanned page does not hide that the page is scanned"}
 
+# 19 pptx: shapes hidden in the selection pane
+def hide(shape, value="1"):
+    shape._element.xpath("./*/p:cNvPr")[0].set("hidden", value)
+
+
+def box(shapes, text):
+    tb = shapes.add_textbox(Inches(1), Inches(2), Inches(4), Inches(1))
+    tb.text_frame.text = text
+    return tb
+
+
+prs = Presentation()
+s = prs.slides.add_slide(prs.slide_layouts[5])
+s.shapes.title.text = "Budgetförslag"
+box(s.shapes, "Synlig kommentar")
+hide(box(s.shapes, "Dold ruta med gammal siffra"))
+hide(box(s.shapes, "Dold ruta med true"), "true")
+group = s.shapes.add_group_shape()
+box(group.shapes, "Dold grupp text")
+hide(group)
+frame = s.shapes.add_table(1, 1, Inches(1), Inches(4), Inches(4), Inches(1))
+frame.table.cell(0, 0).text = "Dold tabell"
+hide(frame)
+prs.save(OUT / "19-pptx-dolda-former.pptx")
+checks["19-pptx-dolda-former.pptx"] = {
+    "must_contain": ["Budgetförslag", "Synlig kommentar"],
+    "must_not_contain": ["Dold ruta", "Dold grupp", "Dold tabell"],
+    "tests": "Shapes hidden in the selection pane are left out: text box (1 and true), group, table"}
+
 (OUT / "checks.json").write_text(json.dumps(checks, ensure_ascii=False, indent=2), encoding="utf-8")
 print("\n".join(sorted(p.name for p in OUT.iterdir())))
