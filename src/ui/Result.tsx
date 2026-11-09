@@ -32,8 +32,9 @@ export function Result({ name, result, onAgain }: { name: string; result: Conver
   const heading = useRef<HTMLHeadingElement>(null);
   const { markdown, meta } = result;
   const fileName = markdownName(name);
-  const asPdf = meta.format === "pdf" && meta.pages ? `som PDF cirka ${num(pdfTokens(markdown.length, meta.pages))} tokens` : null;
-  const facts = [name, extent(meta), `${num(markdown.length)} tecken`, `cirka ${num(approxTokens(markdown.length))} tokens`, asPdf].filter(Boolean);
+  const asText = approxTokens(markdown.length);
+  const asPdf = meta.format === "pdf" && meta.pages ? pdfTokens(markdown.length, meta.pages) : null;
+  const facts = [name, extent(meta), `${num(markdown.length)} tecken`, asPdf === null && `cirka ${num(asText)} tokens`].filter(Boolean);
 
   useEffect(() => heading.current?.focus(), []);
   useEffect(() => {
@@ -86,6 +87,28 @@ export function Result({ name, result, onAgain }: { name: string; result: Conver
             </button>
           </div>
         </div>
+        {asPdf !== null && (
+          <dl className="savings">
+            <div>
+              <dt>Som PDF i en AI-chatt</dt>
+              <dd>
+                {num(asPdf)} <span>tokens, ungefär</span>
+              </dd>
+            </div>
+            <div>
+              <dt>Som text</dt>
+              <dd>
+                {num(asText)} <span>tokens, ungefär</span>
+              </dd>
+            </div>
+            <div className="saved">
+              <dt>Du sparar</dt>
+              <dd>
+                {num(asPdf - asText)} <span>tokens, ungefär {Math.round((1 - asText / asPdf) * 100)} %</span>
+              </dd>
+            </div>
+          </dl>
+        )}
         <span className="visually-hidden" aria-live="polite">
           {copy === "idle" ? "" : copyLabel}
         </span>

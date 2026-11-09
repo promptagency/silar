@@ -16,6 +16,8 @@ features and formats, PATCH for fixes. Newest first.
   and day names are in Swedish, and true and false show as SANT and FALSKT.
 - CSV: Excel's `sep=` line sets the delimiter and is no longer the table
   header. A PDF or Office file wrongly named .csv is read as what it is.
+- PDF results show the token saving as three figures: as PDF in an AI chat,
+  as text, and what you save.
 - "Så funkar det" says that masked text in a PDF can come through.
 
 ## 1.5.0 (2026-11-08)

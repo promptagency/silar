@@ -485,6 +485,34 @@ nav button:hover {
   word-break: break-word;
 }
 
+.savings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(5.5rem, 1fr));
+  align-items: end; /* a label wrapping on a phone must not push its number out of line */
+  gap: 12px 24px;
+  margin: 0;
+  padding: 16px 24px;
+  border-bottom: 1px solid rgba(246, 247, 249, 0.15);
+}
+.savings dt,
+.savings dd span {
+  font-size: 14px;
+  color: rgba(246, 247, 249, 0.75);
+}
+.savings dd {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1.25;
+}
+.savings dd span {
+  display: block;
+  font-weight: 400;
+  line-height: 1.4;
+}
+.savings .saved dd {
+  font-weight: 700;
+}
 .result-actions {
   display: flex;
   flex-wrap: wrap;
@@ -594,6 +622,12 @@ nav button:hover {
 }
 
 @media (max-width: 640px) {
+  .savings {
+    column-gap: 12px;
+  }
+  .savings dd {
+    font-size: 20px;
+  }
   .desktop-only {
     display: none;
   }
