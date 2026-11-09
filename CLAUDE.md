@@ -76,7 +76,7 @@ docs/decisions/
 - `npm run dev` Vite dev server (no CSP meta tag in dev)
 - `npm run lint` Oxlint (`.oxlintrc.json`): correctness rules, React hooks rules and jsx-a11y. ESLint is not used: typescript-eslint does not support TypeScript 7
 - `npm run build` type check + lint + production build to `dist/` + `dist/sw.js`, then `scripts/sizes.ts` prints raw and gzip size per JS/CSS file and fails if a first-load file contains parser code
-- `npm test` Vitest: `tests/convert.test.ts` (checks.json), `tests/parsers.test.ts` (Node parser gate), `tests/headers.test.ts` (CSP in `_headers` = `vite.config.ts`), `tests/sw.test.ts` (service worker precache rules), `tests/event.test.ts` (`functions/api/event.ts`, the Plausible pass-through)
+- `npm test` Vitest: `tests/convert.test.ts` (checks.json), `tests/headers.test.ts` (CSP in `_headers` = `vite.config.ts`), `tests/sw.test.ts` (service worker precache rules), `tests/event.test.ts` (`functions/api/event.ts`, the Plausible pass-through)
 - `node scripts/show.ts <files>` print `convert()` output and warnings, for checkpoints
 - `npm run test:e2e` Playwright against a fresh build on port 4173 (first time: `npx playwright install chromium webkit firefox`). Projects: chromium, webkit, firefox, iphone (WebKit, iPhone 15) and android (Chromium, Pixel 7) emulation. `tests/e2e/offline.spec.ts` checks the service worker cache holds only built files and works offline (Chromium only)
 - offline cache kill switch: set `SW_KILL=1` as a build variable on the Cloudflare Pages project and redeploy `main`. Each returning visitor's service worker then clears every cache, unregisters and reloads the tab; the app no longer registers one. Remove the variable and redeploy to turn the offline cache back on
