@@ -482,5 +482,37 @@ checks["20-udda-talformat.xlsx"] = {
     "must_contain": ["| Hyrtid | 12", "| Avtal | 3", "| Paragraf | 7", "| Yta | 2,5", "| Antal | 4 |", "| Avgift | 1 234,50 |"],
     "tests": "Number formats SheetJS rejects fall back to the plain value, with a decimal comma, and the workbook still converts"}
 
+# 21 pdf: headings and intros that wrap over several lines
+c = rl_canvas.Canvas(str(OUT / "21-pdf-radbrutna-rubriker.pdf"), pagesize=A4)
+y = 780
+for size, leading, font, lines in [
+        (22, 27, "DVB", ["Verksamhetsplan för kommunens", "digitala arbete 2027 till 2030"]),
+        (14, 17, "DV", ["Planen beskriver hur förvaltningarna ska arbeta",
+                        "tillsammans med invånarna under de kommande fyra",
+                        "åren och vilka resurser som krävs för att nå de",
+                        "mål som nämnden har fastställt i budgeten."])]:
+    c.setFont(font, size)
+    y -= 20
+    for ln in lines:
+        c.drawString(72, y, ln)
+        y -= leading
+c.setFont("DV", 14)
+y -= 20
+c.drawString(72, y, "Del ett")
+y -= 30
+c.drawString(72, y, "Del två")
+y -= 30
+c.setFont("DV", 10)
+for _ in range(10):
+    c.drawString(72, y, "Arbetet har fokuserat på att förenkla rutinerna för ansökningar och handläggning.")
+    y -= 14
+c.showPage(); c.save()
+checks["21-pdf-radbrutna-rubriker.pdf"] = {
+    "must_contain": ["# Verksamhetsplan för kommunens digitala arbete 2027 till 2030\n\n",
+                     "\n\nPlanen beskriver hur förvaltningarna ska arbeta tillsammans med invånarna under de kommande fyra åren",
+                     "## Del ett\n\n## Del två"],
+    "must_not_contain": ["# digitala", "# tillsammans", "# Planen"],
+    "tests": "A heading wrapped over two lines stays one heading. A long intro in a large font is a paragraph. Close but separate headings stay separate"}
+
 (OUT / "checks.json").write_text(json.dumps(checks, ensure_ascii=False, indent=2), encoding="utf-8")
 print("\n".join(sorted(p.name for p in OUT.iterdir())))

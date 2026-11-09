@@ -9,7 +9,7 @@
 import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
 import type { ConvertResult, Warning } from "../types.ts";
 import { removeFurniture } from "./furniture.ts";
-import { bodySize, headingLevels } from "./headings.ts";
+import { bodySize, headingLevels, MAX_HEADING_CHARS } from "./headings.ts";
 import { table } from "../markdown.ts";
 import { type Cell, groupLines, type Item, joinText, type Line, median, readingOrder, tableRows, turnSideways } from "./layout.ts";
 
@@ -99,7 +99,8 @@ export async function convertPdf(bytes: Uint8Array): Promise<ConvertResult> {
         const fresh = drop === null || drop <= 0;
         const near = !fresh && drop! <= lineGap * 1.3;
         if (level) {
-          if (last?.kind === "heading" && last.level === level && near) last.text = joinText(last.text, line.text);
+          // Large type has wider leading than the body text, so a wrapped heading is measured against its own size.
+          if (last?.kind === "heading" && last.level === level && !fresh && drop! <= line.size * 1.5) last.text = joinText(last.text, line.text);
           else blocks.push({ kind: "heading", level, text: line.text });
         } else if (line.cells) {
           if (last?.kind === "table" && prev?.cells && !fresh) {
@@ -115,7 +116,8 @@ export async function convertPdf(bytes: Uint8Array): Promise<ConvertResult> {
 
     const markdown = blocks
       .map((b) => {
-        if (b.kind === "heading") return `${"#".repeat(b.level)} ${b.text}`;
+        // Several large lines that add up to this much are an intro, not a heading.
+        if (b.kind === "heading") return b.text.length > MAX_HEADING_CHARS ? b.text : `${"#".repeat(b.level)} ${b.text}`;
         if (b.kind === "para") return b.text;
         // A lone wide-spaced line is not a table.
         if (b.kind === "table") return b.rows.length > 1 ? table(tableRows(b.rows)) : b.text[0];

@@ -209,5 +209,18 @@
       "| Avgift | 1 234,50 |"
     ],
     "tests": "Number formats SheetJS rejects fall back to the plain value, with a decimal comma, and the workbook still converts"
+  },
+  "21-pdf-radbrutna-rubriker.pdf": {
+    "must_contain": [
+      "# Verksamhetsplan för kommunens digitala arbete 2027 till 2030\n\n",
+      "\n\nPlanen beskriver hur förvaltningarna ska arbeta tillsammans med invånarna under de kommande fyra åren",
+      "## Del ett\n\n## Del två"
+    ],
+    "must_not_contain": [
+      "# digitala",
+      "# tillsammans",
+      "# Planen"
+    ],
+    "tests": "A heading wrapped over two lines stays one heading. A long intro in a large font is a paragraph. Close but separate headings stay separate"
   }
 }
