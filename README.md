@@ -9,6 +9,10 @@
 
 <p align="center"><a href="https://silar.app">silar.app</a></p>
 
+<p align="center">
+  <img src="docs/assets/silar-startsida.png" alt="Silars startsida: en yta att släppa dokument på och ett exempel på resultatet i Markdown" width="800">
+</p>
+
 [Svenska](#svenska) · [English](#english)
 
 ---
@@ -19,15 +23,15 @@
 
 Du vill ha hjälp av en AI-tjänst med ett Word-dokument, ett Excel-ark eller en PDF. Laddar du upp filen följer allt med: metadata, bilder, dolda flikar och kommentarer, och tjänsten tolkar layouten på sitt eget sätt.
 
-Silar plockar fram texten först och gör om den till Markdown. Rubriker, listor och tabeller behålls. Du ser exakt vad som skickas, kan stryka det som inte ska med och klistrar sedan in texten i den chatt du använder.
+Silar plockar fram texten först och gör om den till Markdown. Rubriker, listor och tabeller behålls. Du ser exakt vad som skickas, kan stryka det som inte ska med och klistrar sedan in texten i den chatt du använder. För en PDF visar Silar också ungefär hur många tokens du sparar jämfört med att skicka filen till en AI-chatt.
 
 | Format | Vad som följer med |
 | --- | --- |
 | Word (.docx) | Rubriker, listor, tabeller och länkar |
 | Excel (.xlsx) | En tabell per synlig flik, datum och procent som i Excel. Dolda flikar, rader och kolumner hoppas över |
 | CSV (.csv) | Även svenska Excel-exporter med semikolon och Windows-teckenkodning |
-| PowerPoint (.pptx) | En rubrik per bild, punktlistor och talaranteckningar. Dolda bilder hoppas över |
-| PDF (.pdf) | Text, rubriker, två spalter och enkla tabeller. Sidhuvud, sidfot och sidnummer tas bort. Inskannade sidor går inte att läsa |
+| PowerPoint (.pptx) | En rubrik per bild, punktlistor och talaranteckningar. Dolda bilder och former hoppas över |
+| PDF (.pdf) | Text, ifyllda formulärfält, rubriker, två spalter och enkla tabeller. Sidhuvud, sidfot och sidnummer tas bort. Inskannade sidor går inte att läsa |
 
 En svart ruta ovanpå text i en PDF tar inte bort texten, och Silar läser den, liksom text i avstängda lager. Läs igenom resultatet innan du klistrar in det.
 
@@ -63,15 +67,15 @@ Byggd av [Prompt Agency AB](https://promptagency.se). Öppen källkod under [MIT
 
 You want help from an AI service with a Word document, an Excel sheet or a PDF. Uploading the file sends everything along: metadata, images, hidden sheets and comments, and the service reads the layout its own way.
 
-Silar takes the text out first and turns it into Markdown. Headings, lists and tables are kept. You see exactly what will be sent, can cut what should not go, and paste the text into the chat you use.
+Silar takes the text out first and turns it into Markdown. Headings, lists and tables are kept. You see exactly what will be sent, can cut what should not go, and paste the text into the chat you use. For a PDF, Silar also shows roughly how many tokens you save compared with sending the file to an AI chat.
 
 | Format | What comes through |
 | --- | --- |
 | Word (.docx) | Headings, lists, tables and links |
 | Excel (.xlsx) | One table per visible sheet, dates and percentages as Excel shows them. Hidden sheets, rows and columns are left out |
 | CSV (.csv) | Including Swedish Excel exports with semicolons and Windows encoding |
-| PowerPoint (.pptx) | A heading per slide, bullet lists and speaker notes. Hidden slides are left out |
-| PDF (.pdf) | Text, headings, two columns and simple tables. Running headers, footers and page numbers are removed. Scanned pages cannot be read |
+| PowerPoint (.pptx) | A heading per slide, bullet lists and speaker notes. Hidden slides and shapes are left out |
+| PDF (.pdf) | Text, filled-in form fields, headings, two columns and simple tables. Running headers, footers and page numbers are removed. Scanned pages cannot be read |
 
 A black box drawn over text in a PDF does not remove the text, and Silar reads it, as it does text in switched-off layers. Read through the result before you paste it.
 
