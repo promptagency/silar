@@ -24,6 +24,14 @@ describe("detect", () => {
     expect(await detect("bild.png", bytes("\x89PNG"))).toEqual({ format: null, legacy: undefined });
   });
 
+  it("does not read a binary file named .csv as text", async () => {
+    expect(await detect("export.csv", fixture("06-rapport-flera-sidor.pdf"))).toEqual({ format: "pdf" });
+    expect(await detect("export.csv", fixture("03-budget-forening.xlsx"))).toEqual({ format: "xlsx" });
+    expect(await detect("export.csv", new Uint8Array([0xd0, 0xcf, 0x11, 0xe0]))).toEqual({ format: null, locked: true });
+    expect(await detect("export.csv", bytes("PK\x03\x04"))).toEqual({ format: null, legacy: undefined });
+    expect(await detect("export.csv", bytes("namn;ort\nÅsa;Lerum\n"))).toEqual({ format: "csv" });
+  });
+
   it("calls an OLE file named .docx locked, not unsupported", async () => {
     const ole = new Uint8Array([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]);
     expect(await detect("lönelista.xlsx", ole)).toEqual({ format: null, locked: true });

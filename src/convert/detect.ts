@@ -31,7 +31,7 @@ async function zipFormat(bytes: Uint8Array): Promise<Format | null> {
 export async function detect(name: string, bytes: Uint8Array): Promise<Detected> {
   const ext = /\.([a-z0-9]+)$/i.exec(name)?.[1]?.toLowerCase() ?? "";
   const byExt = Object.hasOwn(EXT, ext) ? EXT[ext] : undefined;
-  if (byExt === "csv") return { format: "csv" };
+  if (byExt === "csv" && !isZip(bytes) && !isOle(bytes) && !isPdf(bytes)) return { format: "csv" };
   if (byExt === "pdf" && isPdf(bytes)) return { format: "pdf" };
   if (byExt && byExt !== "pdf" && isZip(bytes) && (await zipFormat(bytes)) === byExt) return { format: byExt };
   if (isPdf(bytes)) return { format: "pdf" };
