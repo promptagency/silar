@@ -415,5 +415,30 @@ checks["17-pdf-skannad-sidnummer.pdf"] = {
     "must_not_contain": ["Sida 1 av 2"],
     "tests": "Every page scanned with only a page number on top: OCR advice, not an empty result"}
 
+# 18 pdf: filled-in form, the answers exist only as field values
+c = rl_canvas.Canvas(str(OUT / "18-pdf-ifylld-blankett.pdf"), pagesize=A4)
+c.setFont("DVB", 18)
+c.drawString(72, 760, "Ansökan om medlemskap")
+c.setFont("DV", 10)
+for label, y, field in [("Namn", 700, dict(name="namn", value="Asa Lindqvist")),
+                        ("Ort", 670, dict(name="ort", value="Lerum")),
+                        ("Tom", 640, dict(name="tom", value="")),
+                        ("Kod", 610, dict(name="kod", value="hemligt123", fieldFlags="password")),
+                        ("Intern", 580, dict(name="intern", value="internt-notat", annotationFlags="hidden"))]:
+    c.drawString(72, y, label)
+    c.acroForm.textfield(x=130, y=y - 5, width=250, height=18, fontSize=10, relative=False, **field)
+c.showPage()
+c.drawImage("/tmp/scan2.jpg", 0, 0, width=w, height=h)
+c.acroForm.textfield(name="motivering", value="Jag vill bidra till arbetet med klubbens ungdomsverksamhet", x=72, y=300,
+                     width=450, height=18, fontSize=10, relative=False)
+c.showPage()
+c.save()
+checks["18-pdf-ifylld-blankett.pdf"] = {
+    "must_contain": ["Asa Lindqvist", "Lerum", "Jag vill bidra till arbetet med klubbens ungdomsverksamhet"],
+    "must_not_contain": ["hemligt123", "internt-notat"],
+    "order": ["Namn", "Asa Lindqvist", "Ort", "Lerum"],
+    "expect_warning": "page_without_text: 2",
+    "tests": "Text field values in place beside their labels. Password and hidden fields left out. A long answer on a scanned page does not hide that the page is scanned"}
+
 (OUT / "checks.json").write_text(json.dumps(checks, ensure_ascii=False, indent=2), encoding="utf-8")
 print("\n".join(sorted(p.name for p in OUT.iterdir())))

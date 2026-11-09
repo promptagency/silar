@@ -1,4 +1,4 @@
-// PDF via pdf.js: text per page, running headers and footers removed,
+// PDF via pdf.js: text and filled-in form fields per page, running headers and footers removed,
 // headings from font size, lines joined into paragraphs, also across page
 // breaks. Pages with an image and no or hardly any text are reported as scanned.
 //
@@ -47,14 +47,22 @@ export async function convertPdf(bytes: Uint8Array): Promise<ConvertResult> {
         const [a, b, , , x, y] = it.transform as number[];
         drawn.push({ str: it.str, x, y, width: it.width, size: Math.round(Math.hypot(a, b) * 2) / 2, a, b });
       }
+      const printed = drawn.reduce((n, i) => n + i.str.trim().length, 0);
+      // Filled-in text fields are not page text. Placed mid-box, so an answer lands on its label's line.
+      const size = median(drawn.map((i) => i.size)) || 10;
+      for (const field of await page.getAnnotations()) {
+        if (field.fieldType !== "Tx" || !field.fieldValue || field.password || field.hidden) continue;
+        const [x0, y0, x1, y1] = field.rect;
+        drawn.push({ str: field.fieldValue, x: x0, y: (y0 + y1) / 2 - size / 3, width: x1 - x0, size, a: size, b: 0 });
+      }
       // Text positions are in the page's own box, which /Rotate does not change.
       const viewport = page.getViewport({ scale: 1 });
       const { items, width, height } = turnSideways(drawn, page.view[2], page.view[3]) ?? { items: drawn, width: viewport.width, height: viewport.height };
       const lines = readingOrder(items, width).flatMap(groupLines);
       // A scan has no text, or only a stamp or page number on top of a page-wide image. A cover logo beside a short title is not one.
-      const chars = lines.reduce((n, l) => n + l.text.length, 0);
-      const ops = chars < 40 ? await page.getOperatorList() : null;
-      const scanned = !!ops && ops.fnArray.some((op, i) => images.has(op) && (chars === 0 || imageWidth(ops.argsArray[i]) >= 1000));
+      // Only printed text counts: answers in form fields do not make a scanned page readable.
+      const ops = printed < 40 ? await page.getOperatorList() : null;
+      const scanned = !!ops && ops.fnArray.some((op, i) => images.has(op) && (printed === 0 || imageWidth(ops.argsArray[i]) >= 1000));
       pages.push({ lines, height, scanned });
       page.cleanup();
     }

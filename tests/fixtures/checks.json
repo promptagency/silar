@@ -167,5 +167,24 @@
       "Sida 1 av 2"
     ],
     "tests": "Every page scanned with only a page number on top: OCR advice, not an empty result"
+  },
+  "18-pdf-ifylld-blankett.pdf": {
+    "must_contain": [
+      "Asa Lindqvist",
+      "Lerum",
+      "Jag vill bidra till arbetet med klubbens ungdomsverksamhet"
+    ],
+    "must_not_contain": [
+      "hemligt123",
+      "internt-notat"
+    ],
+    "order": [
+      "Namn",
+      "Asa Lindqvist",
+      "Ort",
+      "Lerum"
+    ],
+    "expect_warning": "page_without_text: 2",
+    "tests": "Text field values in place beside their labels. Password and hidden fields left out. A long answer on a scanned page does not hide that the page is scanned"
   }
 }
