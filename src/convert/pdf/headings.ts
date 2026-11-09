@@ -3,7 +3,7 @@
 import type { Line } from "./layout.ts";
 
 const HEADING_RATIO = 1.15;
-const MAX_HEADING_CHARS = 120;
+export const MAX_HEADING_CHARS = 120;
 
 /** The body text size: the size most characters are set in. */
 export function bodySize(lines: Line[]): number {

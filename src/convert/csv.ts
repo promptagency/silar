@@ -73,9 +73,12 @@ export function sniff(text: string): string {
 }
 
 export async function convertCsv(bytes: Uint8Array): Promise<ConvertResult> {
-  const { text, fallback } = decode(bytes);
+  const { text: raw, fallback } = decode(bytes);
+  // Excel's own hint on the first line: settles the delimiter and is not data.
+  const hint = /^sep=(.)(?:\r\n?|\n|$)/i.exec(raw);
+  const text = hint ? raw.slice(hint[0].length) : raw;
   const warnings: Warning[] = fallback
     ? [{ code: "encoding_fallback", message: "Filen använder en äldre teckenkodning. Kontrollera att å, ä och ö ser rätt ut." }]
     : [];
-  return { markdown: table(parse(text, sniff(text))), warnings, meta: { format: "csv" } };
+  return { markdown: table(parse(text, hint?.[1] ?? sniff(text))), warnings, meta: { format: "csv" } };
 }

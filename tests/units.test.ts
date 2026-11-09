@@ -24,6 +24,14 @@ describe("detect", () => {
     expect(await detect("bild.png", bytes("\x89PNG"))).toEqual({ format: null, legacy: undefined });
   });
 
+  it("does not read a binary file named .csv as text", async () => {
+    expect(await detect("export.csv", fixture("06-rapport-flera-sidor.pdf"))).toEqual({ format: "pdf" });
+    expect(await detect("export.csv", fixture("03-budget-forening.xlsx"))).toEqual({ format: "xlsx" });
+    expect(await detect("export.csv", new Uint8Array([0xd0, 0xcf, 0x11, 0xe0]))).toEqual({ format: null, locked: true });
+    expect(await detect("export.csv", bytes("PK\x03\x04"))).toEqual({ format: null, legacy: undefined });
+    expect(await detect("export.csv", bytes("namn;ort\nÅsa;Lerum\n"))).toEqual({ format: "csv" });
+  });
+
   it("calls an OLE file named .docx locked, not unsupported", async () => {
     const ole = new Uint8Array([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]);
     expect(await detect("lönelista.xlsx", ole)).toEqual({ format: null, locked: true });
@@ -116,6 +124,13 @@ describe("convert", () => {
     const r = await convert({ name: "stor.csv", data: big.buffer });
     expect(r.warnings.map((w) => w.code)).toEqual(["large_file"]);
     expect(r.markdown.startsWith("| a | b |")).toBe(true);
+  });
+
+  it("uses Excel's sep= line as the delimiter, not as data", async () => {
+    const csv = async (text: string) => (await convert({ name: "a.csv", data: bytes(text).buffer as ArrayBuffer })).markdown;
+    // Left to detection, ";" would win here: it splits every line evenly.
+    expect(await csv("sep=,\nA;x,B\n1;2,3\n")).toBe("| A;x | B |\n| --- | --- |\n| 1;2 | 3 |");
+    expect(await csv("SEP=;\r\nNamn;Ort\r\nÅsa;Lerum\r\n")).toBe("| Namn | Ort |\n| --- | --- |\n| Åsa | Lerum |");
   });
 
   it("reads UTF-8 csv without a fallback warning", async () => {

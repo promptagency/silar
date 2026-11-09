@@ -1,10 +1,12 @@
+/// <reference types="vite/client" />
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { buildSwManifest } from "../scripts/swManifest.ts";
 import { parsersIn } from "../scripts/sizes.ts";
-import { cacheKey, MANIFEST_KEY, networkPath, precacheList, shellFiles, staleKeys, unredirected } from "../src/sw/core.ts";
+import { cacheKey, MANIFEST_KEY, networkPath, precacheList, shellFiles, SKIP_WAITING, staleKeys, unredirected } from "../src/sw/core.ts";
+import { retryWaitingActivation } from "../src/ui/serviceWorker.ts";
 
 const manifest = {
   "/index.html": "aaa",
@@ -100,5 +102,43 @@ describe("parsersIn (bundle gate)", () => {
     // The FAQ names the libraries; that copy is not parser code.
     expect(parsersIn("Word: mammoth och turndown. Excel: SheetJS.")).toEqual([]);
     expect(parsersIn("createRoot(document.body)")).toEqual([]);
+  });
+});
+
+describe("retryWaitingActivation", () => {
+  const fakeWorker = (state: string) => Object.assign(new EventTarget(), { state, postMessage: vi.fn() });
+  const fakeReg = (fields: { waiting?: unknown; installing?: unknown }) => Object.assign(new EventTarget(), { waiting: null as unknown, installing: null as unknown }, fields);
+  const start = (reg: EventTarget) => retryWaitingActivation(reg as unknown as ServiceWorkerRegistration);
+
+  afterEach(() => void vi.useRealTimers());
+
+  it("asks a waiting worker every second and stops when it has taken over", () => {
+    vi.useFakeTimers();
+    const worker = fakeWorker("installed");
+    const reg = fakeReg({ waiting: worker });
+    start(reg);
+    vi.advanceTimersByTime(3000);
+    expect(worker.postMessage).toHaveBeenCalledTimes(3);
+    expect(worker.postMessage).toHaveBeenCalledWith(SKIP_WAITING);
+    reg.waiting = null;
+    vi.advanceTimersByTime(5000);
+    expect(worker.postMessage).toHaveBeenCalledTimes(3);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("starts asking when a build found later finishes installing", () => {
+    vi.useFakeTimers();
+    const reg = fakeReg({});
+    start(reg);
+    const worker = fakeWorker("installing");
+    reg.installing = worker;
+    reg.dispatchEvent(new Event("updatefound"));
+    vi.advanceTimersByTime(3000);
+    expect(worker.postMessage).not.toHaveBeenCalled();
+    worker.state = "installed";
+    worker.dispatchEvent(new Event("statechange"));
+    reg.waiting = worker;
+    vi.advanceTimersByTime(1000);
+    expect(worker.postMessage).toHaveBeenCalledTimes(1);
   });
 });

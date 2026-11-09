@@ -1,8 +1,8 @@
 // PowerPoint (.pptx) via fflate + fast-xml-parser. Slides in the order of
 // presentation.xml (not file names), one ## section per slide, shapes in
 // drawing order, body placeholders and SmartArt as indented lists, tables as
-// GFM tables, speaker notes under their own subheading. Blank and hidden slides are
-// skipped; slide date, footer and number placeholders are left out.
+// GFM tables, speaker notes under their own subheading. Blank and hidden slides
+// and hidden shapes are skipped; slide date, footer and number placeholders are left out.
 import { XMLParser } from "fast-xml-parser";
 import { strFromU8, unzipSync } from "fflate";
 import { table } from "./markdown.ts";
@@ -78,6 +78,8 @@ function smartArt(model: Node | undefined): string {
 
 function shapes(nodes: Node[], slide: Slide, diagram: (relId: string) => string): void {
   for (const n of nodes) {
+    // Hidden in the selection pane: not on the slide. On a group it hides everything inside.
+    if (kids(n).some((k) => ["1", "true"].includes(attr(child(k, "p:cNvPr") ?? {}, "hidden") ?? ""))) continue;
     const t = tag(n);
     if (t === "p:grpSp") shapes(kids(n), slide, diagram);
     else if (t === "mc:AlternateContent") shapes(kids(child(n, "mc:Choice") ?? {}), slide, diagram);

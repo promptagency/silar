@@ -1,6 +1,6 @@
-// PDF via pdf.js: text per page, running headers and footers removed,
+// PDF via pdf.js: text and filled-in form fields per page, running headers and footers removed,
 // headings from font size, lines joined into paragraphs, also across page
-// breaks. Pages without text but with an image are reported as scanned.
+// breaks. Pages with an image and no or hardly any text are reported as scanned.
 //
 // pdf.js gets the bytes and nothing else: no font loading or fetching.
 // In the browser the caller sets GlobalWorkerOptions (see docs/decisions/0001).
@@ -9,7 +9,7 @@
 import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
 import type { ConvertResult, Warning } from "../types.ts";
 import { removeFurniture } from "./furniture.ts";
-import { bodySize, headingLevels } from "./headings.ts";
+import { bodySize, headingLevels, MAX_HEADING_CHARS } from "./headings.ts";
 import { table } from "../markdown.ts";
 import { type Cell, groupLines, type Item, joinText, type Line, median, readingOrder, tableRows, turnSideways } from "./layout.ts";
 
@@ -20,6 +20,9 @@ type Block =
   | { kind: "missing"; page: number };
 
 const SENTENCE_END = /[.!?:;»”")\]]$/;
+
+// Image ops carry [id, width, height] or [{ width, height, ... }].
+const imageWidth = ([first, width]: any[]): number => (typeof first === "string" ? width : first.width);
 
 export async function convertPdf(bytes: Uint8Array): Promise<ConvertResult> {
   const images = new Set<number>([pdfjs.OPS.paintImageXObject, pdfjs.OPS.paintInlineImageXObject, pdfjs.OPS.paintImageMaskXObject, pdfjs.OPS.paintImageXObjectRepeat]);
@@ -44,18 +47,28 @@ export async function convertPdf(bytes: Uint8Array): Promise<ConvertResult> {
         const [a, b, , , x, y] = it.transform as number[];
         drawn.push({ str: it.str, x, y, width: it.width, size: Math.round(Math.hypot(a, b) * 2) / 2, a, b });
       }
+      const printed = drawn.reduce((n, i) => n + i.str.trim().length, 0);
+      // Filled-in text fields are not page text. Placed mid-box, so an answer lands on its label's line.
+      const size = median(drawn.map((i) => i.size)) || 10;
+      for (const field of await page.getAnnotations()) {
+        if (field.fieldType !== "Tx" || !field.fieldValue || field.password || field.hidden) continue;
+        const [x0, y0, x1, y1] = field.rect;
+        drawn.push({ str: field.fieldValue, x: x0, y: (y0 + y1) / 2 - size / 3, width: x1 - x0, size, a: size, b: 0 });
+      }
       // Text positions are in the page's own box, which /Rotate does not change.
       const viewport = page.getViewport({ scale: 1 });
       const { items, width, height } = turnSideways(drawn, page.view[2], page.view[3]) ?? { items: drawn, width: viewport.width, height: viewport.height };
       const lines = readingOrder(items, width).flatMap(groupLines);
-      // Only text-less pages are checked for images: that is what a scan looks like.
-      const scanned = lines.length === 0 && (await page.getOperatorList()).fnArray.some((op) => images.has(op));
+      // A scan has no text, or only a stamp or page number on top of a page-wide image. A cover logo beside a short title is not one.
+      // Only printed text counts: answers in form fields do not make a scanned page readable.
+      const ops = printed < 40 ? await page.getOperatorList() : null;
+      const scanned = !!ops && ops.fnArray.some((op, i) => images.has(op) && (printed === 0 || imageWidth(ops.argsArray[i]) >= 1000));
       pages.push({ lines, height, scanned });
       page.cleanup();
     }
 
     const meta = { format: "pdf", pages: doc.numPages };
-    if (pages.every((p) => p.lines.length === 0)) {
+    if (pages.every((p) => p.scanned || p.lines.length === 0)) {
       const message = "PDF:en saknar text, den är troligen inskannad. Silar läser inte text i bilder. Kör textigenkänning (OCR) på filen först.";
       return { markdown: "", warnings: [{ code: "no_text_layer", message }], meta };
     }
@@ -72,6 +85,8 @@ export async function convertPdf(bytes: Uint8Array): Promise<ConvertResult> {
     kept.forEach((lines, i) => {
       if (pages[i].scanned) {
         warnings.push({ code: "page_without_text", page: i + 1, message: `Sida ${i + 1} saknar text, den är troligen inskannad. Den finns inte med i resultatet.` });
+        // Pushed as they are, so a stamp never joins the text of the page before or after.
+        for (const line of lines) blocks.push({ kind: "para", text: line.text });
         blocks.push({ kind: "missing", page: i + 1 });
         return;
       }
@@ -84,7 +99,8 @@ export async function convertPdf(bytes: Uint8Array): Promise<ConvertResult> {
         const fresh = drop === null || drop <= 0;
         const near = !fresh && drop! <= lineGap * 1.3;
         if (level) {
-          if (last?.kind === "heading" && last.level === level && near) last.text = joinText(last.text, line.text);
+          // Large type has wider leading than the body text, so a wrapped heading is measured against its own size.
+          if (last?.kind === "heading" && last.level === level && !fresh && drop! <= line.size * 1.5) last.text = joinText(last.text, line.text);
           else blocks.push({ kind: "heading", level, text: line.text });
         } else if (line.cells) {
           if (last?.kind === "table" && prev?.cells && !fresh) {
@@ -100,7 +116,8 @@ export async function convertPdf(bytes: Uint8Array): Promise<ConvertResult> {
 
     const markdown = blocks
       .map((b) => {
-        if (b.kind === "heading") return `${"#".repeat(b.level)} ${b.text}`;
+        // Several large lines that add up to this much are an intro, not a heading.
+        if (b.kind === "heading") return b.text.length > MAX_HEADING_CHARS ? b.text : `${"#".repeat(b.level)} ${b.text}`;
         if (b.kind === "para") return b.text;
         // A lone wide-spaced line is not a table.
         if (b.kind === "table") return b.rows.length > 1 ? table(tableRows(b.rows)) : b.text[0];

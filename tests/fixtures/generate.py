@@ -369,5 +369,166 @@ checks["14-nastlade-listor.docx"] = {
                      "1. Sammanställ svar\n   1. Per avdelning\n   2. Per roll"],
     "tests": "Nested lists by numbering level (Tab in Word) and by List Number 2 style, indented under their parent item"}
 
+# 15-17 pdf: scanned pages that also carry a little real text (stamp, page number)
+def scan_with_text(c, image, text):
+    c.drawImage(image, 0, 0, width=w, height=h)
+    c.setFont("DV", 10)
+    c.drawString(380, 600, text)
+    c.showPage()
+
+
+def text_page(c, text):
+    c.setFont("DV", 10)
+    c.drawString(72, 700, text)
+    c.showPage()
+
+
+c = rl_canvas.Canvas(str(OUT / "15-pdf-skannad-stampel.pdf"), pagesize=A4)
+text_page(c, "Förvaltningen har genomfört en kartläggning utan")
+scan_with_text(c, "/tmp/scan2.jpg", "Dnr 2026/114")
+text_page(c, "Uppföljningen visar att rutinerna fungerar.")
+c.save()
+checks["15-pdf-skannad-stampel.pdf"] = {
+    "must_contain": ["utan\n\nDnr 2026/114\n\n<!-- Sida 2 saknar text -->\n\nUppföljningen"],
+    "expect_warning": "page_without_text: 2",
+    "tests": "Scanned page with a diary stamp: warned, stamp kept, not glued to the neighbouring pages"}
+
+Image.new("L", (400, 200), 120).save("/tmp/logo.jpg", quality=70)
+c = rl_canvas.Canvas(str(OUT / "16-pdf-omslag-logotyp.pdf"), pagesize=A4)
+c.drawImage("/tmp/logo.jpg", 200, 600, width=200, height=100)
+c.setFont("DVB", 18)
+c.drawString(72, 500, "Årsredovisning 2026")
+c.showPage()
+text_page(c, "Styrelsen lämnar härmed sin berättelse för året.")
+c.save()
+checks["16-pdf-omslag-logotyp.pdf"] = {
+    "must_contain": ["Årsredovisning 2026"],
+    "must_not_contain": ["saknar text"],
+    "tests": "Cover with a small logo and a short title is not a scanned page"}
+
+c = rl_canvas.Canvas(str(OUT / "17-pdf-skannad-sidnummer.pdf"), pagesize=A4)
+scan_with_text(c, "/tmp/scan1.jpg", "Sida 1 av 2")
+scan_with_text(c, "/tmp/scan2.jpg", "Sida 2 av 2")
+c.save()
+checks["17-pdf-skannad-sidnummer.pdf"] = {
+    "expect_warning": "no_text_layer",
+    "must_not_contain": ["Sida 1 av 2"],
+    "tests": "Every page scanned with only a page number on top: OCR advice, not an empty result"}
+
+# 18 pdf: filled-in form, the answers exist only as field values
+c = rl_canvas.Canvas(str(OUT / "18-pdf-ifylld-blankett.pdf"), pagesize=A4)
+c.setFont("DVB", 18)
+c.drawString(72, 760, "Ansökan om medlemskap")
+c.setFont("DV", 10)
+for label, y, field in [("Namn", 700, dict(name="namn", value="Asa Lindqvist")),
+                        ("Ort", 670, dict(name="ort", value="Lerum")),
+                        ("Tom", 640, dict(name="tom", value="")),
+                        ("Kod", 610, dict(name="kod", value="hemligt123", fieldFlags="password")),
+                        ("Intern", 580, dict(name="intern", value="internt-notat", annotationFlags="hidden"))]:
+    c.drawString(72, y, label)
+    c.acroForm.textfield(x=130, y=y - 5, width=250, height=18, fontSize=10, relative=False, **field)
+c.showPage()
+c.drawImage("/tmp/scan2.jpg", 0, 0, width=w, height=h)
+c.acroForm.textfield(name="motivering", value="Jag vill bidra till arbetet med klubbens ungdomsverksamhet", x=72, y=300,
+                     width=450, height=18, fontSize=10, relative=False)
+c.showPage()
+c.save()
+checks["18-pdf-ifylld-blankett.pdf"] = {
+    "must_contain": ["Asa Lindqvist", "Lerum", "Jag vill bidra till arbetet med klubbens ungdomsverksamhet"],
+    "must_not_contain": ["hemligt123", "internt-notat"],
+    "order": ["Namn", "Asa Lindqvist", "Ort", "Lerum"],
+    "expect_warning": "page_without_text: 2",
+    "tests": "Text field values in place beside their labels. Password and hidden fields left out. A long answer on a scanned page does not hide that the page is scanned"}
+
+# 19 pptx: shapes hidden in the selection pane
+def hide(shape, value="1"):
+    shape._element.xpath("./*/p:cNvPr")[0].set("hidden", value)
+
+
+def box(shapes, text):
+    tb = shapes.add_textbox(Inches(1), Inches(2), Inches(4), Inches(1))
+    tb.text_frame.text = text
+    return tb
+
+
+prs = Presentation()
+s = prs.slides.add_slide(prs.slide_layouts[5])
+s.shapes.title.text = "Budgetförslag"
+box(s.shapes, "Synlig kommentar")
+hide(box(s.shapes, "Dold ruta med gammal siffra"))
+hide(box(s.shapes, "Dold ruta med true"), "true")
+group = s.shapes.add_group_shape()
+box(group.shapes, "Dold grupp text")
+hide(group)
+frame = s.shapes.add_table(1, 1, Inches(1), Inches(4), Inches(4), Inches(1))
+frame.table.cell(0, 0).text = "Dold tabell"
+hide(frame)
+prs.save(OUT / "19-pptx-dolda-former.pptx")
+checks["19-pptx-dolda-former.pptx"] = {
+    "must_contain": ["Budgetförslag", "Synlig kommentar"],
+    "must_not_contain": ["Dold ruta", "Dold grupp", "Dold tabell"],
+    "tests": "Shapes hidden in the selection pane are left out: text box (1 and true), group, table"}
+
+# 20 xlsx: number formats SheetJS cannot apply must not fail the workbook
+wb = Workbook()
+ws = wb.active; ws.title = "Lokaler"
+ws.append(["Post", "Värde"])
+for label, value, fmt in [("Hyrtid", 12, "0 mån"), ("Avtal", 3, "0 år"), ("Paragraf", 7, "0 §"), ("Yta", 2.5, "0.0 m²"),
+                          ("Antal", 4, "0;0;0;0;0"), ("Avgift", 1234.5, "#,##0.00")]:
+    ws.append([label, value])
+    ws.cell(ws.max_row, 2).number_format = fmt
+wb.save(OUT / "20-udda-talformat.xlsx")
+checks["20-udda-talformat.xlsx"] = {
+    "must_contain": ["| Hyrtid | 12", "| Avtal | 3", "| Paragraf | 7", "| Yta | 2,5", "| Antal | 4 |", "| Avgift | 1 234,50 |"],
+    "tests": "Number formats SheetJS rejects fall back to the plain value, with a decimal comma, and the workbook still converts"}
+
+# 21 pdf: headings and intros that wrap over several lines
+c = rl_canvas.Canvas(str(OUT / "21-pdf-radbrutna-rubriker.pdf"), pagesize=A4)
+y = 780
+for size, leading, font, lines in [
+        (22, 27, "DVB", ["Verksamhetsplan för kommunens", "digitala arbete 2027 till 2030"]),
+        (14, 17, "DV", ["Planen beskriver hur förvaltningarna ska arbeta",
+                        "tillsammans med invånarna under de kommande fyra",
+                        "åren och vilka resurser som krävs för att nå de",
+                        "mål som nämnden har fastställt i budgeten."])]:
+    c.setFont(font, size)
+    y -= 20
+    for ln in lines:
+        c.drawString(72, y, ln)
+        y -= leading
+c.setFont("DV", 14)
+y -= 20
+c.drawString(72, y, "Del ett")
+y -= 30
+c.drawString(72, y, "Del två")
+y -= 30
+c.setFont("DV", 10)
+for _ in range(10):
+    c.drawString(72, y, "Arbetet har fokuserat på att förenkla rutinerna för ansökningar och handläggning.")
+    y -= 14
+c.showPage(); c.save()
+checks["21-pdf-radbrutna-rubriker.pdf"] = {
+    "must_contain": ["# Verksamhetsplan för kommunens digitala arbete 2027 till 2030\n\n",
+                     "\n\nPlanen beskriver hur förvaltningarna ska arbeta tillsammans med invånarna under de kommande fyra åren",
+                     "## Del ett\n\n## Del två"],
+    "must_not_contain": ["# digitala", "# tillsammans", "# Planen"],
+    "tests": "A heading wrapped over two lines stays one heading. A long intro in a large font is a paragraph. Close but separate headings stay separate"}
+
+# 22 xlsx: month names, day names and booleans as Swedish Excel shows them
+wb = Workbook()
+ws = wb.active; ws.title = "Datum"
+ws.append(["Post", "Värde"])
+for label, value, fmt in [("Beslut", date(2026, 5, 18), "[$-41D]dddd\\ d\\ mmmm\\ yyyy"), ("Start", date(2026, 3, 3), "d mmm yyyy"),
+                          ("Möte", date(2026, 10, 15), "ddd"), ("Aktiv", True, None), ("Arkiverad", False, None),
+                          ("Text", "Monday May", None)]:
+    ws.append([label, value])
+    if fmt:
+        ws.cell(ws.max_row, 2).number_format = fmt
+wb.save(OUT / "22-svenska-ord.xlsx")
+checks["22-svenska-ord.xlsx"] = {
+    "must_contain": ["| Beslut | måndag 18 maj 2026 |", "| Start | 3 mar 2026 |", "| Möte | tor |", "| Aktiv | SANT |",
+                     "| Arkiverad | FALSKT |", "| Text | Monday May |"],
+    "tests": "Month and day names in Swedish, booleans as SANT and FALSKT, ordinary text left alone"}
+
 (OUT / "checks.json").write_text(json.dumps(checks, ensure_ascii=False, indent=2), encoding="utf-8")
 print("\n".join(sorted(p.name for p in OUT.iterdir())))

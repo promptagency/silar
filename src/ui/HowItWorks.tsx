@@ -24,6 +24,10 @@ const FAQ: [string, ReactNode][] = [
     </>,
   ],
   ["Varför blir min PDF tom?", "Den är troligen inskannad, alltså bilder av text. Silar läser inte text i bilder. Kör textigenkänning (OCR) på filen först."],
+  [
+    "Följer maskad text med från en PDF?",
+    "Det kan den göra. En svart ruta ovanpå texten tar inte bort texten, den finns kvar i filen och Silar läser den. Detsamma gäller avstängda lager. Läs igenom resultatet innan du klistrar in det.",
+  ],
   ["Vad är Markdown?", "Ett enkelt textformat. # betyder rubrik, - betyder punktlista och | bygger tabeller. AI-tjänster läser det bra."],
   ["Fungerar Silar utan internet?", "Ja, efter första besöket. Läsaren för varje filtyp sparas i webbläsaren första gången du öppnar en sådan fil."],
   [
