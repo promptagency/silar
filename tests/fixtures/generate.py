@@ -469,5 +469,18 @@ checks["19-pptx-dolda-former.pptx"] = {
     "must_not_contain": ["Dold ruta", "Dold grupp", "Dold tabell"],
     "tests": "Shapes hidden in the selection pane are left out: text box (1 and true), group, table"}
 
+# 20 xlsx: number formats SheetJS cannot apply must not fail the workbook
+wb = Workbook()
+ws = wb.active; ws.title = "Lokaler"
+ws.append(["Post", "Värde"])
+for label, value, fmt in [("Hyrtid", 12, "0 mån"), ("Avtal", 3, "0 år"), ("Paragraf", 7, "0 §"), ("Yta", 2.5, "0.0 m²"),
+                          ("Antal", 4, "0;0;0;0;0"), ("Avgift", 1234.5, "#,##0.00")]:
+    ws.append([label, value])
+    ws.cell(ws.max_row, 2).number_format = fmt
+wb.save(OUT / "20-udda-talformat.xlsx")
+checks["20-udda-talformat.xlsx"] = {
+    "must_contain": ["| Hyrtid | 12", "| Avtal | 3", "| Paragraf | 7", "| Yta | 2,5", "| Antal | 4 |", "| Avgift | 1 234,50 |"],
+    "tests": "Number formats SheetJS rejects fall back to the plain value, with a decimal comma, and the workbook still converts"}
+
 (OUT / "checks.json").write_text(json.dumps(checks, ensure_ascii=False, indent=2), encoding="utf-8")
 print("\n".join(sorted(p.name for p in OUT.iterdir())))

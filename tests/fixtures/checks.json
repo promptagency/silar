@@ -198,5 +198,16 @@
       "Dold tabell"
     ],
     "tests": "Shapes hidden in the selection pane are left out: text box (1 and true), group, table"
+  },
+  "20-udda-talformat.xlsx": {
+    "must_contain": [
+      "| Hyrtid | 12",
+      "| Avtal | 3",
+      "| Paragraf | 7",
+      "| Yta | 2,5",
+      "| Antal | 4 |",
+      "| Avgift | 1 234,50 |"
+    ],
+    "tests": "Number formats SheetJS rejects fall back to the plain value, with a decimal comma, and the workbook still converts"
   }
 }

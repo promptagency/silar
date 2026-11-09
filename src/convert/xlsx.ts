@@ -22,7 +22,13 @@ function shown(c: XLSX.CellObject | undefined, formulas: { count: number }, date
   }
   if (c.t === "n" && typeof c.v === "number") {
     const fmt = LOCALE_DATES.get(c.z) ?? c.z ?? "General";
-    const text: string = XLSX.SSF.format(fmt, c.v, { date1904 });
+    let text: string;
+    try {
+      text = XLSX.SSF.format(fmt, c.v, { date1904 });
+    } catch {
+      // shortcut: SheetJS rejects some custom formats ("0 mån", "0 m²"), so the unit is lost; parse the format ourselves if that matters.
+      return String(c.v).replace(".", ",");
+    }
     if (XLSX.SSF.is_date(fmt)) return text;
     // shortcut: swaps en-US separators to Swedish; assumes no literal "," or "." in custom formats.
     return text.replace(/[,.]/g, (ch) => (ch === "," ? " " : ","));
