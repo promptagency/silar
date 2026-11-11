@@ -8,12 +8,38 @@ const DELIMITERS = [";", ",", "\t"];
 export function decode(bytes: Uint8Array): { text: string; fallback: boolean } {
   if (bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) return { text: new TextDecoder().decode(bytes.subarray(3)), fallback: false };
   if (bytes[0] === 0xff && bytes[1] === 0xfe) return { text: new TextDecoder("utf-16le").decode(bytes.subarray(2)), fallback: false };
+  if (bytes[0] === 0xfe && bytes[1] === 0xff) return { text: new TextDecoder("utf-16be").decode(bytes.subarray(2)), fallback: false };
+  const utf16 = utf16Order(bytes);
+  if (utf16) return { text: new TextDecoder(utf16).decode(bytes), fallback: false };
   try {
     return { text: new TextDecoder("utf-8", { fatal: true }).decode(bytes), fallback: false };
   } catch {
     return { text: new TextDecoder("windows-1252").decode(bytes), fallback: true };
   }
 }
+
+/**
+ * UTF-16 without a byte order mark: plain Latin text then has a zero byte in
+ * every other position, on the odd side for little-endian, even for big-endian.
+ */
+function utf16Order(bytes: Uint8Array): "utf-16le" | "utf-16be" | null {
+  const n = Math.min(bytes.length, 4096) & ~1;
+  if (n < 4) return null;
+  let evenZero = 0;
+  let oddZero = 0;
+  for (let i = 0; i < n; i += 2) {
+    if (bytes[i] === 0) evenZero++;
+    if (bytes[i + 1] === 0) oddZero++;
+  }
+  const pairs = n / 2;
+  if (oddZero > pairs * 0.6 && evenZero < pairs * 0.1) return "utf-16le";
+  if (evenZero > pairs * 0.6 && oddZero < pairs * 0.1) return "utf-16be";
+  return null;
+}
+
+// Control characters other than tab and line breaks: never text a person wrote.
+// oxlint-disable-next-line no-control-regex -- matching control characters is the point
+const CONTROL = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g;
 
 /** RFC 4180: quoted fields may hold delimiters, line breaks and "" for a quote. */
 export function parse(text: string, delimiter: string, plainFrom = Infinity): string[][] {
@@ -73,7 +99,13 @@ export function sniff(text: string): string {
 }
 
 export async function convertCsv(bytes: Uint8Array): Promise<ConvertResult> {
-  const { text: raw, fallback } = decode(bytes);
+  const decoded = decode(bytes);
+  const { fallback } = decoded;
+  // A file that is mostly control characters is binary, not a CSV with odd bytes in it.
+  const controls = decoded.text.slice(0, 64 * 1024).match(CONTROL)?.length ?? 0;
+  if (controls > Math.min(decoded.text.length, 64 * 1024) * 0.1)
+    return { markdown: "", warnings: [{ code: "corrupt_file", message: "Filen ser inte ut som en CSV-fil utan innehåller binära data. Exportera den som CSV igen och försök på nytt." }], meta: { format: "csv" } };
+  const raw = decoded.text.replace(CONTROL, "");
   // Excel's own hint on the first line: settles the delimiter and is not data.
   const hint = /^sep=(.)(?:\r\n?|\n|$)/i.exec(raw);
   const text = hint ? raw.slice(hint[0].length) : raw;

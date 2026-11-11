@@ -49,25 +49,25 @@ function shown(c: XLSX.CellObject | undefined, formulas: { count: number }, date
 }
 
 /**
- * The range the sheet's cells actually span. Not !ref: that comes from the
- * file's <dimension> tag, which can claim the whole grid (A1:XFD1048576,
- * 17 billion cells) for a sheet with two cells in it. Empty cells that only
- * carry formatting do not count either, for the same reason.
+ * The sheet's real cells, row by row, in sheet order. Not !ref and not a
+ * dense loop over the span: <dimension> can claim the whole grid
+ * (A1:XFD1048576, 17 billion cells), and two cells in opposite corners span
+ * just as much. Empty cells that only carry formatting do not count either.
  */
-function usedRange(sheet: XLSX.WorkSheet): XLSX.Range | null {
-  let range: XLSX.Range | null = null;
+function usedCells(sheet: XLSX.WorkSheet): { rows: number[]; cols: number[]; at: Map<number, Map<number, XLSX.CellObject>> } {
+  const at = new Map<number, Map<number, XLSX.CellObject>>();
+  const cols = new Set<number>();
   for (const key of Object.keys(sheet)) {
     if (key.startsWith("!") || (sheet[key].t === "z" && !sheet[key].f)) continue;
     const { r, c } = XLSX.utils.decode_cell(key);
-    if (!range) range = { s: { r, c }, e: { r, c } };
-    else {
-      range.s.r = Math.min(range.s.r, r);
-      range.s.c = Math.min(range.s.c, c);
-      range.e.r = Math.max(range.e.r, r);
-      range.e.c = Math.max(range.e.c, c);
-    }
+    if (!(r >= 0 && c >= 0)) continue;
+    let row = at.get(r);
+    if (!row) at.set(r, (row = new Map()));
+    row.set(c, sheet[key]);
+    cols.add(c);
   }
-  return range;
+  const byNumber = (a: number, b: number) => a - b;
+  return { rows: [...at.keys()].sort(byNumber), cols: [...cols].sort(byNumber), at };
 }
 
 export async function convertXlsx(bytes: Uint8Array): Promise<ConvertResult> {
@@ -82,13 +82,13 @@ export async function convertXlsx(bytes: Uint8Array): Promise<ConvertResult> {
     const sheet = book.Sheets[name];
     const hiddenRows = sheet["!rows"] ?? [];
     const hiddenCols = sheet["!cols"] ?? [];
-    const range = usedRange(sheet);
-    if (!range) continue;
+    const cells = usedCells(sheet);
+    const cols = cells.cols.filter((c) => !hiddenCols[c]?.hidden);
     const rows: string[][] = [];
-    for (let r = range.s.r; r <= range.e.r; r++) {
+    for (const r of cells.rows) {
       if (hiddenRows[r]?.hidden) continue;
-      const row: string[] = [];
-      for (let c = range.s.c; c <= range.e.c; c++) if (!hiddenCols[c]?.hidden) row.push(shown(sheet[XLSX.utils.encode_cell({ r, c })], formulas, date1904).trim());
+      const at = cells.at.get(r)!;
+      const row = cols.map((c) => shown(at.get(c), formulas, date1904).trim());
       if (row.some(Boolean)) rows.push(row);
     }
     if (rows.length === 0) continue;

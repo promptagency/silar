@@ -33,7 +33,8 @@ function turndown(): TurndownService {
     filter: "li",
     replacement(content, node) {
       const parent = node.parentNode as HTMLElement;
-      const index = Array.prototype.indexOf.call(parent.children, node);
+      // The position comes from markPositions: counting siblings here is quadratic on long lists.
+      const index = Number((node as HTMLElement).getAttribute("data-index") ?? 0);
       const marker = parent.nodeName === "OL" ? `${Number(parent.getAttribute("start") ?? 1) + index}. ` : "- ";
       const body = content.trim().replace(/\n/g, `\n${" ".repeat(marker.length)}`);
       return `${marker}${body}${node.nextSibling ? "\n" : ""}`;
@@ -53,9 +54,8 @@ function turndown(): TurndownService {
     filter: "tr",
     replacement(content, node) {
       const row = `|${content}\n`;
-      const table = node.parentNode?.nodeName === "TABLE" ? node.parentNode : node.parentNode?.parentNode;
-      const first = table && (table as HTMLElement).querySelector("tr") === node;
-      if (!first) return row;
+      // Marked by markPositions; a querySelector per row is quadratic on long tables.
+      if (!(node as HTMLElement).hasAttribute("data-first-row")) return row;
       const width = Array.from((node as HTMLElement).children).reduce((n, c) => n + Number(c.getAttribute("colspan") ?? 1), 0);
       return `${row}|${" --- |".repeat(width)}\n`;
     },
@@ -112,6 +112,18 @@ function fillMergedCells(doc: Document): void {
   }
 }
 
+/** Marks each list item's position and each table's first row in one pass, for the turndown rules. */
+function markPositions(doc: Document): void {
+  for (const list of Array.from(doc.body.querySelectorAll("ol, ul"))) {
+    let i = 0;
+    for (const li of Array.from(list.children)) if (li.nodeName === "LI") li.setAttribute("data-index", String(i++));
+  }
+  for (const table of Array.from(doc.body.querySelectorAll("table"))) {
+    const first = Array.from(table.querySelectorAll("tr")).find((tr) => tr.closest("table") === table);
+    first?.setAttribute("data-first-row", "");
+  }
+}
+
 export async function convertDocx(bytes: Uint8Array): Promise<ConvertResult> {
   const visible = withoutHiddenText(bytes);
   // Node's mammoth reads `buffer`, the browser build `arrayBuffer`.
@@ -123,5 +135,6 @@ export async function convertDocx(bytes: Uint8Array): Promise<ConvertResult> {
   // Parsed with domino, not turndown's DOMParser: a Web Worker has no DOMParser.
   const doc = createDocument(promoteHeadings(value));
   fillMergedCells(doc);
+  markPositions(doc);
   return { markdown: turndown().turndown(doc.body), warnings: [], meta: { format: "docx" } };
 }
