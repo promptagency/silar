@@ -63,6 +63,13 @@ describe("robustness", () => {
         expect(w.message, "warning leaks exception text").not.toMatch(LEAK);
       }
       expect(markdown.slice(0, 200_000), "markdown leaks code artefacts").not.toMatch(/\[object Object\]/);
+      // Control characters (NUL and friends) are never text a person wrote.
+      // oxlint-disable-next-line no-control-regex -- matching control characters is the point
+      expect(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(markdown), "markdown contains control characters").toBe(false);
+      // A zip named as an Office file that yields nothing is damaged, not an unknown format.
+      const zipNamedOffice = /\.(docx|xlsx|pptx)$/i.test(c.name) && c.data[0] === 0x50 && c.data[1] === 0x4b;
+      if (zipNamedOffice && markdown.trim() === "") expect(warnings.map((w) => w.code), "an Office zip with no text is damaged or empty, not an unknown format").not.toContain("unsupported_format");
+      if (c.data.length === 0) expect(warnings.map((w) => w.code), "empty file should say corrupt_file").toContain("corrupt_file");
     });
   }
 });
