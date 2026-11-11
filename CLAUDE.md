@@ -60,7 +60,7 @@ docs/decisions/
     meta: { format: string; pages?: number; sheets?: string[] };
   }>
   ```
-- Warning codes used by tests: `no_text_layer`, `page_without_text`, `unsupported_format`, `formula_without_value`, `encoding_fallback`, `large_file`
+- Warning codes used by tests: `no_text_layer`, `page_without_text`, `unsupported_format`, `formula_without_value`, `encoding_fallback`, `large_file`, `corrupt_file`
 - Token estimate: characters divided by 3.3 (Swedish text), shown as approximate. No tokenizer dependency
 - Large files: soft warning above 25 MB, conversion still runs
 - No new dependencies beyond those listed without asking

@@ -36,6 +36,7 @@ const TITLES: Record<WarningCode, string> = {
   formula_without_value: "Formler utan värden",
   encoding_fallback: "Teckenkodning",
   large_file: "Stor fil",
+  corrupt_file: "Filen går inte att läsa",
 };
 
 export interface Notice {
