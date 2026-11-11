@@ -270,7 +270,7 @@ function Example() {
 
 /** A result, or a warning in its place when there is nothing to show. */
 function Outcome({ name, result, onAgain }: { name: string; result: ConvertResult; onAgain: () => void }) {
-  const blocking = notices(result.warnings).find((n) => n.code === "unsupported_format" || n.code === "no_text_layer");
+  const blocking = notices(result.warnings).find((n) => n.code === "unsupported_format" || n.code === "no_text_layer" || n.code === "corrupt_file");
   if (blocking) return <Blocked title={blocking.title} message={blocking.message} onAgain={onAgain} />;
   return <Result name={name} result={result} onAgain={onAgain} />;
 }
