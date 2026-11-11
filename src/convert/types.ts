@@ -4,7 +4,8 @@ export type WarningCode =
   | "unsupported_format"
   | "formula_without_value"
   | "encoding_fallback"
-  | "large_file";
+  | "large_file"
+  | "corrupt_file";
 
 export interface Warning {
   code: WarningCode;
