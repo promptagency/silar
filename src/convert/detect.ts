@@ -2,7 +2,7 @@
 // A mismatch or unknown extension falls back to the bytes: %PDF anywhere in
 // the first kilobyte (as Acrobat accepts), or a zip whose main part names it.
 export type Format = "docx" | "xlsx" | "pptx" | "csv" | "pdf";
-export type Detected = { format: Format } | { format: null; legacy?: string; locked?: true; empty?: true; damaged?: Format };
+export type Detected = { format: Format } | { format: null; legacy?: string; locked?: true; empty?: true; damaged?: Format; opendocument?: true };
 
 const ZIP_MAIN: Record<string, Format> = {
   "word/document.xml": "docx",
@@ -60,6 +60,8 @@ export async function detect(name: string, bytes: Uint8Array): Promise<Detected>
     if (format) return { format };
   }
   // A zip named .docx/.xlsx/.pptx whose main part is missing or unreadable: damaged, not foreign.
+  // OpenDocument (LibreOffice) is a zip too; its first entry names the type.
+  if (bytes[0] === 0x50 && bytes[1] === 0x4b && new TextDecoder("latin1").decode(bytes.subarray(0, 256)).includes("application/vnd.oasis.opendocument")) return { format: null, opendocument: true };
   // Only "PK" is checked: the signature's next bytes may be what got damaged.
   if (byExt && byExt !== "pdf" && byExt !== "csv" && bytes[0] === 0x50 && bytes[1] === 0x4b) return { format: null, damaged: byExt };
   // Office saves a password-protected docx/xlsx/pptx inside an OLE file, not a zip.

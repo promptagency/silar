@@ -14,8 +14,10 @@ const PARSERS: Record<Format, () => Promise<(bytes: Uint8Array) => Promise<Conve
   pptx: () => import("./pptx.ts").then((m) => m.convertPptx),
 };
 
-function unsupported({ legacy, locked }: { legacy?: string; locked?: true }): ConvertResult {
-  const message = locked
+function unsupported({ legacy, locked, opendocument }: { legacy?: string; locked?: true; opendocument?: true }): ConvertResult {
+  const message = opendocument
+    ? "Filen är sparad i OpenDocument-format (LibreOffice). Spara den som .docx, .xlsx eller .pptx och försök igen."
+    : locked
     ? "Filen är lösenordsskyddad eller sparad i ett äldre format. Ta bort lösenordet i Office, spara om filen och försök igen."
     : legacy
       ? `Det äldre formatet .${legacy} stöds inte. Spara filen som .${legacy}x och försök igen.`
@@ -43,6 +45,9 @@ export async function convert(file: ConvertInput): Promise<ConvertResult> {
     // A parser that throws means the file is damaged, or locked in a way
     // detect() could not see. Never pass the raw exception text on.
     if ((err as Error)?.name === "PasswordException") return locked();
+    // Out of memory or a string past the engine's limit: the file is valid but too big for a browser tab.
+    if (err instanceof RangeError) return broken(found.format, TOO_BIG);
+    // Anything else is most likely a damaged file, but can be a bug or a reader that failed to load.
     return broken(found.format);
   }
   const all = [...warnings, ...result.warnings];
@@ -51,12 +56,18 @@ export async function convert(file: ConvertInput): Promise<ConvertResult> {
 }
 
 const APP: Record<Format, string> = { docx: "Word", xlsx: "Excel", pptx: "PowerPoint", csv: "ett kalkylprogram", pdf: "en PDF-läsare" };
-const BOMB = "Filen packas upp till långt mer än den väger och ser ut att vara skadad eller gjord för att överbelasta datorn. Silar läser den inte.";
+const BOMB = "Filen blir för stor när den packas upp. Den kan vara skadad eller byggd för att överbelasta datorn, så Silar läser den inte.";
+const TOO_BIG = "Filen är för stor för att läsas i webbläsaren. Prova att dela upp den i mindre delar.";
 
 function broken(format: Format, message?: string): ConvertResult {
   return {
     markdown: "",
-    warnings: [{ code: "corrupt_file", message: message ?? `Filen verkar vara skadad och går inte att läsa. Öppna den i ${APP[format]}, spara en ny kopia och försök igen.` }],
+    warnings: [
+      {
+        code: "corrupt_file",
+        message: message ?? `Silar kunde inte läsa filen, den kan vara skadad. Öppna den i ${APP[format]} och spara en ny kopia. Hjälper inte det, ladda om sidan och försök igen.`,
+      },
+    ],
     meta: { format },
   };
 }

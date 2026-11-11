@@ -102,8 +102,10 @@ export async function convertCsv(bytes: Uint8Array): Promise<ConvertResult> {
   const decoded = decode(bytes);
   const { fallback } = decoded;
   // A file that is mostly control characters is binary, not a CSV with odd bytes in it.
-  const controls = decoded.text.slice(0, 64 * 1024).match(CONTROL)?.length ?? 0;
-  if (controls > Math.min(decoded.text.length, 64 * 1024) * 0.1)
+  // Trailing NUL padding (some export tools fill out a block) does not count.
+  const head = decoded.text.replace(/\0+$/, "").slice(0, 64 * 1024);
+  const controls = head.match(CONTROL)?.length ?? 0;
+  if (head.length === 0 ? decoded.text.length > 0 : controls > head.length * 0.1)
     return { markdown: "", warnings: [{ code: "corrupt_file", message: "Filen ser inte ut som en CSV-fil utan innehåller binära data. Exportera den som CSV igen och försök på nytt." }], meta: { format: "csv" } };
   const raw = decoded.text.replace(CONTROL, "");
   // Excel's own hint on the first line: settles the delimiter and is not data.
