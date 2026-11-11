@@ -4,6 +4,24 @@ Silar follows [Semantic Versioning](https://semver.org/): MAJOR for changes
 that break how people use Silar or the `convert()` API, MINOR for new
 features and formats, PATCH for fixes. Newest first.
 
+## 1.7.0 (2026-11-11)
+
+- Damaged, empty and hostile files no longer fail with a bare error. They get
+  a clear Swedish message instead, under the new warning code `corrupt_file`.
+  Password-protected PDFs and OpenDocument files saved as .docx, .xlsx or
+  .pptx are named as such.
+- Zip bombs are stopped before anything is unpacked.
+- Word: a table with 10 000 rows converts in about 2 seconds instead of
+  nearly two minutes. Long lists are faster too.
+- Excel: a sheet whose cells sit far apart, or that has invalid cell
+  references, no longer hangs.
+- CSV: UTF-16 without a byte order mark and UTF-16 big-endian are read
+  correctly. Binary files named .csv are refused, and control characters
+  are removed from the result.
+- Tests: a fuzz corpus of 153 damaged and hostile files, a robustness
+  contract every conversion must meet, and a Claude Code fix loop that keeps
+  working until the tests and build pass.
+
 ## 1.6.1 (2026-11-09)
 
 - Footer link for reporting errors by email.
