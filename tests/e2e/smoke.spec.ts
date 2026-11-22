@@ -184,6 +184,15 @@ test("Så funkar det opens as a modal with the FAQ, Esc closes it and focus retu
   await expect(opener).toBeFocused();
 });
 
+test("Nyheter opens from the version button in the footer", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /^Version \d/ }).click();
+  await expect(page.getByRole("dialog", { name: "Nyheter" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^Version 1\.8\.0/ })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog", { name: "Nyheter" })).toBeHidden();
+});
+
 test("earlier results in this tab can be shown again", async ({ page, isMobile }) => {
   await page.goto("/");
   const file = page.locator('input[type="file"]');

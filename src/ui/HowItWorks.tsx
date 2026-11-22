@@ -16,6 +16,7 @@ const FAQ: [string, ReactNode][] = [
       <ul>
         <li>Word (.docx): rubriker, listor, tabeller och länkar.</li>
         <li>Excel (.xlsx): en tabell per flik, datum och procent som i Excel. Dolda flikar, rader och kolumner tas inte med.</li>
+        <li>Calc (.ods): samma som för Excel. Andra OpenDocument-filer, som .odt, behöver sparas som .docx eller .pptx.</li>
         <li>CSV: även svenska Excel-exporter med semikolon.</li>
         <li>PowerPoint (.pptx): en rubrik per bild, punktlistor och talaranteckningar.</li>
         <li>PDF: text, rubriker och enkla tabeller. Inskannade sidor går inte att läsa.</li>
@@ -36,7 +37,7 @@ const FAQ: [string, ReactNode][] = [
       Öppen källkod som körs i din webbläsare:
       <ul>
         <li>Word: mammoth och turndown</li>
-        <li>Excel: SheetJS</li>
+        <li>Excel och Calc: SheetJS</li>
         <li>PowerPoint: fflate och fast-xml-parser</li>
         <li>PDF: pdf.js från Mozilla</li>
         <li>CSV: Silars egen kod</li>
@@ -78,7 +79,7 @@ export function HowItWorks({ ref }: { ref: Ref<HTMLDialogElement> }) {
       <ol className="steps">
         <li>
           <h3>Välj ett dokument</h3>
-          <p>Word, Excel, CSV, PowerPoint eller PDF. En fil i taget.</p>
+          <p>Word, Excel, Calc, CSV, PowerPoint eller PDF. En fil i taget.</p>
         </li>
         <li>
           <h3>Silar plockar fram texten</h3>

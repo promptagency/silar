@@ -4,6 +4,14 @@ Silar follows [Semantic Versioning](https://semver.org/): MAJOR for changes
 that break how people use Silar or the `convert()` API, MINOR for new
 features and formats, PATCH for fixes. Newest first.
 
+## 1.8.0 (2026-11-22)
+
+- Calc: OpenDocument spreadsheets (.ods) are read like Excel files, one table
+  per visible sheet. Hidden sheets are left out (read from the sheet style,
+  which SheetJS ignores). Other OpenDocument files still get a clear message.
+- "Nyheter": the version number in the footer opens a dialog with the latest
+  changes in Swedish (`src/ui/news.ts`).
+
 ## 1.7.1 (2026-11-22)
 
 - A file with a zip entry named after a built-in JavaScript name (such as

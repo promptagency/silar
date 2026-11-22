@@ -7,3 +7,4 @@ tests/fixtures/private/
 test-results/
 playwright-report/
 .claude/loop/
+.claude/worktrees/

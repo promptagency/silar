@@ -70,10 +70,29 @@ function usedCells(sheet: XLSX.WorkSheet): { rows: number[]; cols: number[]; at:
   return { rows: [...at.keys()].sort(byNumber), cols: [...cols].sort(byNumber), at };
 }
 
-export async function convertXlsx(bytes: Uint8Array): Promise<ConvertResult> {
+/**
+ * Names of hidden sheets in an .ods. SheetJS does not read them: ODF keeps the
+ * flag on the sheet's style (table:display="false"), not on the sheet.
+ * Names stay XML-escaped, as SheetJS reports them for .ods too.
+ * shortcut: regex over content.xml assumes LibreOffice's attribute order (name before style-name); use an XML parser if other writers show up.
+ */
+const XML_ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'" };
+// SheetJS leaves .ods sheet names XML-escaped ("R&amp;D").
+const unescapeXml = (s: string) => s.replace(/&(amp|lt|gt|quot|apos);/g, (_, e: string) => XML_ENTITIES[e]);
+
+async function odsHidden(bytes: Uint8Array): Promise<Set<string>> {
+  const { unzipSync, strFromU8 } = await import("fflate");
+  const xml = strFromU8(unzipSync(bytes, { filter: (f) => f.name === "content.xml" })["content.xml"] ?? new Uint8Array());
+  const styles = new Set([...xml.matchAll(/<style:style\b[^>]*?style:name="([^"]*)"[^>]*>\s*<style:table-properties\b[^>]*table:display="false"/g)].map((m) => m[1]));
+  return new Set([...xml.matchAll(/<table:table\b[^>]*?table:name="([^"]*)"[^>]*?table:style-name="([^"]*)"/g)].filter((m) => styles.has(m[2])).map((m) => m[1]));
+}
+
+export async function convertXlsx(bytes: Uint8Array, format: "xlsx" | "ods" = "xlsx"): Promise<ConvertResult> {
   // cellStyles brings the hidden flags of rows and columns.
   const book = XLSX.read(bytes, { cellNF: true, cellFormula: true, sheetStubs: true, cellStyles: true });
-  const visible = book.SheetNames.filter((_, i) => !book.Workbook?.Sheets?.[i]?.Hidden);
+  const hidden = format === "ods" ? await odsHidden(bytes) : new Set<string>();
+  const visible = book.SheetNames.filter((n, i) => !book.Workbook?.Sheets?.[i]?.Hidden && !hidden.has(n));
+  const label = (name: string) => (format === "ods" ? unescapeXml(name) : name);
   const formulas = { count: 0 };
   // Some workbooks, mostly from old Mac Excel, count dates from 1904.
   const date1904 = book.Workbook?.WBProps?.date1904;
@@ -98,10 +117,10 @@ export async function convertXlsx(bytes: Uint8Array): Promise<ConvertResult> {
     const firstTableRow = kept.findIndex((r) => r.filter(Boolean).length > 1);
     const titles = firstTableRow === -1 ? kept : kept.slice(0, firstTableRow);
     const body = firstTableRow === -1 ? [] : kept.slice(firstTableRow);
-    sections.push([`## ${name}`, ...titles.map((r) => r.filter(Boolean).join(" ")), table(body)].filter(Boolean).join("\n\n"));
+    sections.push([`## ${label(name)}`, ...titles.map((r) => r.filter(Boolean).join(" ")), table(body)].filter(Boolean).join("\n\n"));
   }
   const warnings: Warning[] = formulas.count
     ? [{ code: "formula_without_value", message: `${formulas.count} ${formulas.count === 1 ? "formel" : "formler"} saknar sparat värde och visas som formel. Öppna och spara filen i Excel för att få med värdena.` }]
     : [];
-  return { markdown: sections.join("\n\n"), warnings, meta: { format: "xlsx", sheets: visible } };
+  return { markdown: sections.join("\n\n"), warnings, meta: { format, sheets: visible.map(label) } };
 }
