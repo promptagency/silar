@@ -3,13 +3,14 @@ import { flushSync } from "react-dom";
 import { type ConvertResult, LARGE_FILE_BYTES } from "../convert/types.ts";
 import { convertFile } from "./convertFile.ts";
 import { HowItWorks } from "./HowItWorks.tsx";
+import { News } from "./News.tsx";
 import { FileIcon, LockIcon, WarningIcon } from "./icons.tsx";
 import { Result } from "./Result.tsx";
 import { approxTokens, formatName, notices, num } from "./text.ts";
 
 declare const __APP_VERSION__: string;
 
-const ACCEPT = ".docx,.xlsx,.csv,.pptx,.pdf";
+const ACCEPT = ".docx,.xlsx,.ods,.csv,.pptx,.pdf";
 // shortcut: results stay in this tab's memory only (no storage, CLAUDE.md); 10 keeps memory small.
 const HISTORY_MAX = 10;
 
@@ -32,6 +33,7 @@ export function App() {
   const input = useRef<HTMLInputElement>(null);
   const abort = useRef<AbortController | null>(null);
   const howItWorks = useRef<HTMLDialogElement>(null);
+  const news = useRef<HTMLDialogElement>(null);
   const busy = state.kind === "working";
 
   // Busy check on the ref, not state: it is set at once, and keeps handle()
@@ -71,11 +73,11 @@ export function App() {
     document.getElementById("choose")?.focus();
   }
 
-  // Esc cancels a conversion, same as Avbryt; with "Så funkar det" open, Esc only closes that.
+  // Esc cancels a conversion, same as Avbryt; with "Så funkar det" or "Nyheter" open, Esc only closes that.
   useEffect(() => {
     if (!busy) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !howItWorks.current?.open) abort.current?.abort();
+      if (e.key === "Escape" && !howItWorks.current?.open && !news.current?.open) abort.current?.abort();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -150,7 +152,7 @@ export function App() {
                   <span className="desktop-only">Välj fil</span>
                   <span className="phone-only">Välj dokument</span>
                 </button>
-                <p className="dropzone-formats">Word, Excel, CSV, PowerPoint eller PDF</p>
+                <p className="dropzone-formats">Word, Excel, Calc, CSV, PowerPoint eller PDF</p>
               </div>
               <p className="privacy">
                 <LockIcon />
@@ -212,11 +214,12 @@ export function App() {
 
       <footer className="site-footer">
         <div className="wrap">
-          Ett verktyg från <a href="https://promptagency.se">Prompt Agency</a> · <a href="https://github.com/promptagency/silar">Källkod på GitHub</a> · <a href="mailto:micke@promptagency.se?subject=Fel%20i%20Silar">Rapportera fel</a> · Version {__APP_VERSION__}
+          Ett verktyg från <a href="https://promptagency.se">Prompt Agency</a> · <a href="https://github.com/promptagency/silar">Källkod på GitHub</a> · <a href="mailto:micke@promptagency.se?subject=Fel%20i%20Silar">Rapportera fel</a> · <button type="button" className="text-button" aria-haspopup="dialog" onClick={() => news.current?.showModal()}>Version {__APP_VERSION__}</button>
         </div>
       </footer>
 
       <HowItWorks ref={howItWorks} />
+      <News ref={news} />
 
       {dragging && (
         <div className="drag-overlay" aria-hidden="true">

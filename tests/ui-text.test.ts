@@ -13,6 +13,7 @@ it("describes the extent per format and names the download", () => {
   expect(extent({ format: "pdf", pages: 1 })).toBe("1 sida");
   expect(extent({ format: "pptx", pages: 12 })).toBe("12 bilder");
   expect(extent({ format: "xlsx", sheets: ["a", "b"] })).toBe("2 flikar");
+  expect(extent({ format: "ods", sheets: ["a"] })).toBe("1 flik");
   expect(extent({ format: "csv" })).toBeNull();
   expect(markdownName("Rapport 2026.final.pdf")).toBe("Rapport 2026.final.md");
   expect(approxTokens(3300)).toBe(1000);

@@ -139,6 +139,11 @@ nav button:hover {
   font-size: 28px;
 }
 
+.news-entry h3 {
+  margin: 24px 0 8px;
+  font-size: 18px;
+}
+
 .faq-title {
   margin: 40px 0 8px;
   font-size: 22px;
@@ -594,6 +599,12 @@ nav button:hover {
 
 .steps p {
   color: var(--color-muted);
+}
+
+.site-footer .text-button {
+  min-height: 0;
+  padding: 0;
+  color: var(--color-accent);
 }
 
 .site-footer {

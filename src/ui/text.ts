@@ -13,7 +13,7 @@ const PDF_PAGE_IMAGE_TOKENS = 1500;
 /** The PDF itself sent to Claude: its text plus one image per page. */
 export const pdfTokens = (chars: number, pages: number) => approxTokens(chars) + pages * PDF_PAGE_IMAGE_TOKENS;
 
-const FORMAT_NAMES: Record<string, string> = { docx: "Word", xlsx: "Excel", csv: "CSV", pptx: "PowerPoint", pdf: "PDF" };
+const FORMAT_NAMES: Record<string, string> = { docx: "Word", xlsx: "Excel", ods: "Calc", csv: "CSV", pptx: "PowerPoint", pdf: "PDF" };
 
 /** Format name from a file name, for "loading the PDF reader" before the result tells us. */
 export function formatName(fileName: string): string | null {
@@ -23,7 +23,7 @@ export function formatName(fileName: string): string | null {
 
 /** "3 sidor", "4 bilder", "2 flikar", or nothing. */
 export function extent(meta: ConvertResult["meta"]): string | null {
-  if (meta.format === "xlsx" && meta.sheets) return `${num(meta.sheets.length)} ${meta.sheets.length === 1 ? "flik" : "flikar"}`;
+  if ((meta.format === "xlsx" || meta.format === "ods") && meta.sheets) return `${num(meta.sheets.length)} ${meta.sheets.length === 1 ? "flik" : "flikar"}`;
   if (meta.pages === undefined) return null;
   if (meta.format === "pptx") return `${num(meta.pages)} ${meta.pages === 1 ? "bild" : "bilder"}`;
   return `${num(meta.pages)} ${meta.pages === 1 ? "sida" : "sidor"}`;
