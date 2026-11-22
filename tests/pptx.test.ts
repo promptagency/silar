@@ -81,3 +81,20 @@ it("decodes letters written as number codes, once", async () => {
   const { markdown } = await convertPptx(zip);
   expect(markdown).toBe("## Bild 1\n\nFörsäljning &#246;");
 });
+
+it("reads a SmartArt diagram that links back to itself once", async () => {
+  const dgm = 'xmlns:dgm="http://schemas.openxmlformats.org/drawingml/2006/diagram" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"';
+  const frame = `<p:graphicFrame><a:graphic><a:graphicData><dgm:relIds ${dgm} r:dm="rD"/></a:graphicData></a:graphic></p:graphicFrame>`;
+  const zip = zipSync({
+    "ppt/presentation.xml": strToU8(`<p:presentation ${NS}><p:sldIdLst><p:sldId id="256" r:id="rA"/></p:sldIdLst></p:presentation>`),
+    "ppt/_rels/presentation.xml.rels": strToU8(`<Relationships>${rel("rA", "slides/slide1.xml")}</Relationships>`),
+    "ppt/slides/slide1.xml": strToU8(slide(frame)),
+    "ppt/slides/_rels/slide1.xml.rels": strToU8(`<Relationships>${rel("rD", "../diagrams/data1.xml")}</Relationships>`),
+    "ppt/diagrams/data1.xml": strToU8(
+      `<dgm:dataModel ${dgm}><dgm:ptLst><dgm:pt modelId="d" type="doc"/><dgm:pt modelId="1"><dgm:t><a:p><a:r><a:t>Ett</a:t></a:r></a:p></dgm:t></dgm:pt></dgm:ptLst>` +
+        `<dgm:cxnLst><dgm:cxn modelId="c1" srcId="d" destId="1" srcOrd="0"/><dgm:cxn modelId="c2" srcId="1" destId="1" srcOrd="0"/><dgm:cxn modelId="c3" srcId="1" destId="d" srcOrd="1"/></dgm:cxnLst></dgm:dataModel>`,
+    ),
+  });
+  const { markdown } = await convertPptx(zip);
+  expect(markdown).toBe("## Bild 1\n\n- Ett");
+});

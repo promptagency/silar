@@ -40,7 +40,8 @@ async function zipFormat(bytes: Uint8Array): Promise<Format | null> {
   let found: Format | null = null;
   try {
     // The filter sees every entry name and inflates none of them.
-    unzipSync(bytes, { filter: (f) => ((found ??= ZIP_MAIN[f.name] ?? null), false) });
+    // hasOwn: an entry named "constructor" must not match Object.prototype.
+    unzipSync(bytes, { filter: (f) => ((found ??= Object.hasOwn(ZIP_MAIN, f.name) ? ZIP_MAIN[f.name] : null), false) });
   } catch {
     return null;
   }

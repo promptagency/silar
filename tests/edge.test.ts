@@ -23,3 +23,8 @@ it("says an empty file is empty", async () => {
   const r = await run("tom.xlsx", new Uint8Array());
   expect(r.warnings[0]).toMatchObject({ code: "corrupt_file", message: expect.stringContaining("tom") });
 });
+
+it("calls a .docx zip with an entry named after an Object method damaged, not a crash", async () => {
+  const r = await run("arkiv.docx", zipSync({ constructor: strToU8("x") }));
+  expect(r.warnings[0].code).toBe("corrupt_file");
+});
