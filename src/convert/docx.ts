@@ -4,8 +4,7 @@
 import { createDocument } from "@mixmark-io/domino";
 import { strFromU8, strToU8, unzipSync, zipSync } from "fflate";
 import mammoth from "mammoth";
-import TurndownService from "turndown";
-import { cell } from "./markdown.ts";
+import { fillMergedCells, markPositions, turndown } from "./html.ts";
 import type { ConvertResult } from "./types.ts";
 
 // Title becomes # and Heading n becomes n+1; promoteHeadings undoes the shift
@@ -22,47 +21,6 @@ const STYLE_MAP = [
 
 function promoteHeadings(html: string): string {
   return html.includes("<h1>") ? html : html.replace(/<(\/?)h([2-6])>/g, (_, slash, n) => `<${slash}h${Number(n) - 1}>`);
-}
-
-function turndown(): TurndownService {
-  const td = new TurndownService({ headingStyle: "atx", bulletListMarker: "-", emDelimiter: "*", codeBlockStyle: "fenced" });
-  // Text is for an AI chat, not a renderer: backslash escapes are noise.
-  td.escape = (s) => s;
-  td.remove(["img", "style", "script"]);
-  td.addRule("listItem", {
-    filter: "li",
-    replacement(content, node) {
-      const parent = node.parentNode as HTMLElement;
-      // The position comes from markPositions: counting siblings here is quadratic on long lists.
-      const index = Number((node as HTMLElement).getAttribute("data-index") ?? 0);
-      const marker = parent.nodeName === "OL" ? `${Number(parent.getAttribute("start") ?? 1) + index}. ` : "- ";
-      const body = content.trim().replace(/\n/g, `\n${" ".repeat(marker.length)}`);
-      return `${marker}${body}${node.nextSibling ? "\n" : ""}`;
-    },
-  });
-  // GFM tables. Mammoth writes <td> only, so the first row is the header.
-  // A cell merged sideways keeps its text in the first column and leaves the
-  // rest empty; downward merges are filled in by fillMergedCells.
-  td.addRule("tableCell", {
-    filter: ["td", "th"],
-    replacement(content, node) {
-      const span = Number((node as HTMLElement).getAttribute("colspan") ?? 1);
-      return ` ${cell(content.replace(/\n+/g, " "))} |${" |".repeat(Math.max(0, span - 1))}`;
-    },
-  });
-  td.addRule("tableRow", {
-    filter: "tr",
-    replacement(content, node) {
-      const row = `|${content}\n`;
-      // Marked by markPositions; a querySelector per row is quadratic on long tables.
-      if (!(node as HTMLElement).hasAttribute("data-first-row")) return row;
-      const width = Array.from((node as HTMLElement).children).reduce((n, c) => n + Number(c.getAttribute("colspan") ?? 1), 0);
-      return `${row}|${" --- |".repeat(width)}\n`;
-    },
-  });
-  td.addRule("table", { filter: "table", replacement: (content) => `\n\n${content.trim()}\n\n` });
-  td.addRule("tableSection", { filter: ["thead", "tbody", "tfoot"], replacement: (content) => content });
-  return td;
 }
 
 // A run with <w:vanish/> in its properties and only text after them. Anything
@@ -84,43 +42,6 @@ function withoutHiddenText(bytes: Uint8Array): Uint8Array {
   }
   if (Object.keys(changed).length === 0) return bytes;
   return zipSync({ ...unzipSync(bytes), ...changed }, { level: 0 });
-}
-
-/**
- * Mammoth writes a downward merge as rowspan and leaves out the cells it
- * covers. They are put back empty, so later cells stay in their columns.
- */
-function fillMergedCells(doc: Document): void {
-  for (const table of Array.from(doc.body.querySelectorAll("table"))) {
-    const covered: number[] = []; // per column, how many more rows a merge above reaches
-    for (const tr of Array.from(table.querySelectorAll("tr"))) {
-      if (tr.closest("table") !== table) continue; // a row of a table nested in this one
-      let cell = tr.firstElementChild;
-      for (let col = 0; cell || col < covered.length; col++) {
-        if (!cell || covered[col] > 0) {
-          tr.insertBefore(doc.createElement("td"), cell);
-          if (covered[col] > 0) covered[col]--;
-        } else {
-          const span = Number(cell.getAttribute("colspan") ?? 1);
-          for (let c = col; c < col + span; c++) covered[c] = Number(cell.getAttribute("rowspan") ?? 1) - 1;
-          col += span - 1;
-          cell = cell.nextElementSibling;
-        }
-      }
-    }
-  }
-}
-
-/** Marks each list item's position and each table's first row in one pass, for the turndown rules. */
-function markPositions(doc: Document): void {
-  for (const list of Array.from(doc.body.querySelectorAll("ol, ul"))) {
-    let i = 0;
-    for (const li of Array.from(list.children)) if (li.nodeName === "LI") li.setAttribute("data-index", String(i++));
-  }
-  for (const table of Array.from(doc.body.querySelectorAll("table"))) {
-    const first = Array.from(table.querySelectorAll("tr")).find((tr) => tr.closest("table") === table);
-    first?.setAttribute("data-first-row", "");
-  }
 }
 
 export async function convertDocx(bytes: Uint8Array): Promise<ConvertResult> {
