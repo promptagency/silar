@@ -13,7 +13,7 @@ const PDF_PAGE_IMAGE_TOKENS = 1500;
 /** The PDF itself sent to Claude: its text plus one image per page. */
 export const pdfTokens = (chars: number, pages: number) => approxTokens(chars) + pages * PDF_PAGE_IMAGE_TOKENS;
 
-const FORMAT_NAMES: Record<string, string> = { docx: "Word", xlsx: "Excel", csv: "CSV", pptx: "PowerPoint", pdf: "PDF" };
+const FORMAT_NAMES: Record<string, string> = { docx: "Word", xlsx: "Excel", csv: "CSV", pptx: "PowerPoint", pdf: "PDF", txt: "Text", md: "Markdown", html: "HTML", markdown: "Markdown", htm: "HTML" };
 
 /** Format name from a file name, for "loading the PDF reader" before the result tells us. */
 export function formatName(fileName: string): string | null {

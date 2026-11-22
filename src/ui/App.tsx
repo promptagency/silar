@@ -9,7 +9,7 @@ import { approxTokens, formatName, notices, num } from "./text.ts";
 
 declare const __APP_VERSION__: string;
 
-const ACCEPT = ".docx,.xlsx,.csv,.pptx,.pdf";
+const ACCEPT = ".docx,.xlsx,.csv,.pptx,.pdf,.txt,.md,.markdown,.html,.htm";
 // shortcut: results stay in this tab's memory only (no storage, CLAUDE.md); 10 keeps memory small.
 const HISTORY_MAX = 10;
 

@@ -19,6 +19,7 @@ const FAQ: [string, ReactNode][] = [
         <li>CSV: även svenska Excel-exporter med semikolon.</li>
         <li>PowerPoint (.pptx): en rubrik per bild, punktlistor och talaranteckningar.</li>
         <li>PDF: text, rubriker och enkla tabeller. Inskannade sidor går inte att läsa.</li>
+        <li>Text (.txt), Markdown (.md) och webbsidor sparade som .html.</li>
       </ul>
       Äldre .doc-, .xls- och .ppt-filer behöver sparas om i det nya formatet först.
     </>,
