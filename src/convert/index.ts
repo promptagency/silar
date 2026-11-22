@@ -7,6 +7,8 @@ export type { ConvertInput, ConvertResult, Warning, WarningCode } from "./types.
 
 
 const PARSERS: Record<Format, () => Promise<(bytes: Uint8Array) => Promise<ConvertResult>>> = {
+  odt: () => import("./odf.ts").then((m) => m.convertOdt),
+  odp: () => import("./odf.ts").then((m) => m.convertOdp),
   ods: () => import("./xlsx.ts").then((m) => (bytes) => m.convertXlsx(bytes, "ods")),
   docx: () => import("./docx.ts").then((m) => m.convertDocx),
   xlsx: () => import("./xlsx.ts").then((m) => m.convertXlsx),
@@ -20,12 +22,12 @@ const PARSERS: Record<Format, () => Promise<(bytes: Uint8Array) => Promise<Conve
 
 function unsupported({ legacy, locked, opendocument }: { legacy?: string; locked?: true; opendocument?: true }): ConvertResult {
   const message = opendocument
-    ? "Filen är sparad i OpenDocument-format (LibreOffice). Spara den som .docx eller .pptx och försök igen."
+    ? "Den här OpenDocument-filen stöds inte. Silar läser Writer (.odt), Calc (.ods) och Impress (.odp)."
     : locked
     ? "Filen är lösenordsskyddad eller sparad i ett äldre format. Ta bort lösenordet i Office, spara om filen och försök igen."
     : legacy
       ? `Det äldre formatet .${legacy} stöds inte. Spara filen som .${legacy}x och försök igen.`
-      : "Filformatet stöds inte. Silar läser Word (.docx), Excel (.xlsx), Calc (.ods), CSV, PowerPoint (.pptx), PDF, text (.txt), Markdown (.md) och webbsidor (.html).";
+      : "Filformatet stöds inte. Silar läser Word (.docx), Writer (.odt), Excel (.xlsx), Calc (.ods), CSV, PowerPoint (.pptx), Impress (.odp), PDF, text (.txt), Markdown (.md) och webbsidor (.html).";
   return { markdown: "", warnings: [{ code: "unsupported_format", message }], meta: { format: "unknown" } };
 }
 
@@ -59,8 +61,8 @@ export async function convert(file: ConvertInput): Promise<ConvertResult> {
   return { ...result, warnings: all };
 }
 
-const ZIPPED = new Set<Format>(["docx", "xlsx", "ods", "pptx"]);
-const APP: Record<Format, string> = { docx: "Word", xlsx: "Excel", ods: "LibreOffice Calc", pptx: "PowerPoint", csv: "ett kalkylprogram", pdf: "en PDF-läsare", txt: "en textredigerare", md: "en textredigerare", html: "en webbläsare" };
+const ZIPPED = new Set<Format>(["docx", "xlsx", "ods", "odt", "odp", "pptx"]);
+const APP: Record<Format, string> = { docx: "Word", xlsx: "Excel", ods: "LibreOffice Calc", odt: "LibreOffice Writer", odp: "LibreOffice Impress", pptx: "PowerPoint", csv: "ett kalkylprogram", pdf: "en PDF-läsare", txt: "en textredigerare", md: "en textredigerare", html: "en webbläsare" };
 const BOMB = "Filen blir för stor när den packas upp. Den kan vara skadad eller byggd för att överbelasta datorn, så Silar läser den inte.";
 const TOO_BIG = "Filen är för stor för att läsas i webbläsaren. Prova att dela upp den i mindre delar.";
 

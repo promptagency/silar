@@ -1,7 +1,7 @@
 // Format detection: extension first, checked against the file's first bytes.
 // A mismatch or unknown extension falls back to the bytes: %PDF anywhere in
 // the first kilobyte (as Acrobat accepts), or a zip whose main part names it.
-export type Format = "docx" | "xlsx" | "ods" | "pptx" | "csv" | "pdf" | "txt" | "md" | "html";
+export type Format = "docx" | "xlsx" | "ods" | "odt" | "odp" | "pptx" | "csv" | "pdf" | "txt" | "md" | "html";
 export type Detected = { format: Format } | { format: null; legacy?: string; locked?: true; empty?: true; damaged?: Format; opendocument?: true };
 
 const ZIP_MAIN: Record<string, Format> = {
@@ -9,7 +9,7 @@ const ZIP_MAIN: Record<string, Format> = {
   "xl/workbook.xml": "xlsx",
   "ppt/presentation.xml": "pptx",
 };
-const EXT: Record<string, Format> = { docx: "docx", xlsx: "xlsx", ods: "ods", pptx: "pptx", csv: "csv", pdf: "pdf", txt: "txt", md: "md", markdown: "md", html: "html", htm: "html" };
+const EXT: Record<string, Format> = { docx: "docx", xlsx: "xlsx", ods: "ods", odt: "odt", odp: "odp", pptx: "pptx", csv: "csv", pdf: "pdf", txt: "txt", md: "md", markdown: "md", html: "html", htm: "html" };
 const TEXT = new Set<Format>(["csv", "txt", "md", "html"]);
 const LEGACY = new Set(["doc", "xls", "ppt"]);
 
@@ -49,7 +49,11 @@ async function zipFormat(bytes: Uint8Array): Promise<Format | null> {
   return found;
 }
 
-const ODS_MIME = "application/vnd.oasis.opendocument.spreadsheet";
+const ODF_MIME: Record<string, Format> = {
+  "application/vnd.oasis.opendocument.spreadsheet": "ods",
+  "application/vnd.oasis.opendocument.text": "odt",
+  "application/vnd.oasis.opendocument.presentation": "odp",
+};
 
 /** The zip's "mimetype" entry (a few dozen bytes; anything bigger is not one), or "". */
 async function odfMime(bytes: Uint8Array): Promise<string> {
@@ -74,7 +78,7 @@ export async function detect(name: string, bytes: Uint8Array): Promise<Detected>
   // A zip named .docx/.xlsx/.pptx whose main part is missing or unreadable: damaged, not foreign.
   // OpenDocument (LibreOffice) is a zip too; its "mimetype" entry names the type.
   const odf = isZip(bytes) ? await odfMime(bytes) : "";
-  if (odf === ODS_MIME) return { format: "ods" };
+  if (Object.hasOwn(ODF_MIME, odf)) return { format: ODF_MIME[odf] };
   if (odf.startsWith("application/vnd.oasis.opendocument")) return { format: null, opendocument: true };
   // Only "PK" is checked: the signature's next bytes may be what got damaged.
   if (byExt && byExt !== "pdf" && !TEXT.has(byExt) && bytes[0] === 0x50 && bytes[1] === 0x4b) return { format: null, damaged: byExt };

@@ -4,6 +4,17 @@ Silar follows [Semantic Versioning](https://semver.org/): MAJOR for changes
 that break how people use Silar or the `convert()` API, MINOR for new
 features and formats, PATCH for fixes. Newest first.
 
+## 1.10.0 (2026-11-22)
+
+- Writer (.odt): headings, paragraphs, nested lists and tables, read from
+  content.xml with fflate and fast-xml-parser. Comments, tracked changes,
+  images and hidden paragraphs and sections are left out; footnote text stays
+  where the note sits.
+- Impress (.odp): one section per slide like PowerPoint, with title, text,
+  tables and speaker notes. Hidden and blank slides, footers, dates and slide
+  numbers are left out.
+- Other OpenDocument types (such as drawings) still get a clear message.
+
 ## 1.9.0 (2026-11-22)
 
 - Text (.txt) and Markdown (.md) files are read as they are, with line endings,
