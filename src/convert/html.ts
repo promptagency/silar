@@ -2,7 +2,7 @@
 import { createDocument } from "@mixmark-io/domino";
 import TurndownService from "turndown";
 import { cell } from "./markdown.ts";
-import { CONTROL, decode, ENCODING_WARNING } from "./text.ts";
+import { CONTROL, decode, ENCODING_WARNING, isBinary } from "./text.ts";
 import type { ConvertResult } from "./types.ts";
 
 export function turndown(): TurndownService {
@@ -88,6 +88,8 @@ const DROPPED = "script, style, noscript, template, iframe, object, svg, img, in
 
 export async function convertHtml(bytes: Uint8Array): Promise<ConvertResult> {
   const { text, fallback } = decode(bytes);
+  if (isBinary(text))
+    return { markdown: "", warnings: [{ code: "corrupt_file", message: "Filen ser inte ut som en webbsida utan innehåller binära data. Kontrollera att det är rätt fil och försök igen." }], meta: { format: "html" } };
   // shortcut: a <meta charset> other than UTF-8 is not honoured, only the bytes decide; add it if real pages show mojibake.
   const doc = createDocument(text.replace(CONTROL, ""));
   const title = doc.querySelector("title")?.textContent?.trim();

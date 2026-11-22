@@ -14,6 +14,8 @@ const PARSER_MARKS: Record<string, string> = {
   csv: "windows-1252",
   pptx: "ppt/presentation.xml",
   pdf: "getDocument",
+  // In the shared turndown setup html.ts gives docx and html.
+  html: "data-first-row",
 };
 
 /** Parsers whose code is in this text. */

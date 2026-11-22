@@ -55,3 +55,9 @@ describe("html", () => {
     expect(r.markdown).toBe("# Egen\n\ntext");
   });
 });
+
+it("refuses a binary file named .html", async () => {
+  const bytes = new Uint8Array(2048).map((_, i) => (i * 7) % 32);
+  const r = await convert({ name: "sida.html", data: bytes.buffer });
+  expect(r.warnings[0].code).toBe("corrupt_file");
+});
