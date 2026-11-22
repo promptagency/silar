@@ -10,7 +10,7 @@ import { approxTokens, formatName, notices, num } from "./text.ts";
 
 declare const __APP_VERSION__: string;
 
-const ACCEPT = ".docx,.xlsx,.ods,.csv,.pptx,.pdf,.txt,.md,.markdown,.html,.htm";
+const ACCEPT = ".docx,.xlsx,.ods,.odt,.odp,.csv,.pptx,.pdf,.txt,.md,.markdown,.html,.htm";
 // shortcut: results stay in this tab's memory only (no storage, CLAUDE.md); 10 keeps memory small.
 const HISTORY_MAX = 10;
 
@@ -152,7 +152,7 @@ export function App() {
                   <span className="desktop-only">Välj fil</span>
                   <span className="phone-only">Välj dokument</span>
                 </button>
-                <p className="dropzone-formats">Word, Excel, Calc, CSV, PowerPoint, PDF eller text</p>
+                <p className="dropzone-formats">Word, Excel, PowerPoint, LibreOffice, CSV, PDF eller text</p>
               </div>
               <p className="privacy">
                 <LockIcon />

@@ -1,6 +1,11 @@
 // What changed, for users, in Swedish. Newest first, keep the latest 5; add an entry with every release.
 export const NEWS: { version: string; date: string; items: string[] }[] = [
   {
+    version: "1.10.0",
+    date: "2026-11-22",
+    items: ["Silar läser nu textdokument (.odt) från LibreOffice Writer och presentationer (.odp) från LibreOffice Impress."],
+  },
+  {
     version: "1.9.0",
     date: "2026-11-22",
     items: ["Silar läser nu textfiler (.txt), Markdown (.md) och webbsidor sparade som .html.", "Webbsidor blir rubriker, listor, tabeller och länkar, utan skript och bilder."],
@@ -25,10 +30,5 @@ export const NEWS: { version: string; date: string; items: string[] }[] = [
       "Excel: vissa ovanliga kalkylblad får inte längre sidan att hänga sig.",
       "CSV: fler teckenkodningar läses rätt, så å, ä och ö ser rätt ut.",
     ],
-  },
-  {
-    version: "1.6.1",
-    date: "2026-11-09",
-    items: ["Ny länk längst ned för att rapportera fel."],
   },
 ];

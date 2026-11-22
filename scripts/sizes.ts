@@ -13,6 +13,7 @@ const PARSER_MARKS: Record<string, string> = {
   xlsx: "sheet_to_json",
   csv: "windows-1252",
   pptx: "ppt/presentation.xml",
+  odf: "text:hidden-paragraph",
   pdf: "getDocument",
   // In the shared turndown setup html.ts gives docx and html.
   html: "data-first-row",

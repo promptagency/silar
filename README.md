@@ -30,8 +30,10 @@ Silar plockar fram texten först och gör om den till Markdown. Rubriker, listor
 | Word (.docx) | Rubriker, listor, tabeller och länkar |
 | Excel (.xlsx) | En tabell per synlig flik, datum och procent som i Excel. Dolda flikar, rader och kolumner hoppas över |
 | Calc (.ods) | Som Excel: en tabell per synlig flik, dolda flikar hoppas över |
+| Writer (.odt) | Som Word: rubriker, listor och tabeller. Kommentarer, ändringsspårning och dold text hoppas över |
 | CSV (.csv) | Även svenska Excel-exporter med semikolon och Windows-teckenkodning |
 | PowerPoint (.pptx) | En rubrik per bild, punktlistor och talaranteckningar. Dolda bilder och former hoppas över |
+| Impress (.odp) | Som PowerPoint: en rubrik per bild, punktlistor och talaranteckningar. Dolda bilder hoppas över |
 | PDF (.pdf) | Text, ifyllda formulärfält, rubriker, två spalter och enkla tabeller. Sidhuvud, sidfot och sidnummer tas bort. Inskannade sidor går inte att läsa |
 | Text, Markdown och HTML (.txt, .md, .html) | Texten som den är. Webbsidor blir rubriker, listor, tabeller och länkar, utan skript, formatmallar och bilder |
 
@@ -76,8 +78,10 @@ Silar takes the text out first and turns it into Markdown. Headings, lists and t
 | Word (.docx) | Headings, lists, tables and links |
 | Excel (.xlsx) | One table per visible sheet, dates and percentages as Excel shows them. Hidden sheets, rows and columns are left out |
 | Calc (.ods) | As Excel: one table per visible sheet, hidden sheets are left out |
+| Writer (.odt) | As Word: headings, lists and tables. Comments, tracked changes and hidden text are left out |
 | CSV (.csv) | Including Swedish Excel exports with semicolons and Windows encoding |
 | PowerPoint (.pptx) | A heading per slide, bullet lists and speaker notes. Hidden slides and shapes are left out |
+| Impress (.odp) | As PowerPoint: a heading per slide, bullet lists and speaker notes. Hidden slides are left out |
 | PDF (.pdf) | Text, filled-in form fields, headings, two columns and simple tables. Running headers, footers and page numbers are removed. Scanned pages cannot be read |
 | Text, Markdown and HTML (.txt, .md, .html) | The text as it is. Web pages become headings, lists, tables and links, without scripts, stylesheets and images |
 

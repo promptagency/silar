@@ -14,8 +14,8 @@ it("converts a CSV padded with trailing NUL bytes", async () => {
 });
 
 it("names OpenDocument files instead of calling them damaged", async () => {
-  const odt = zipSync({ mimetype: [strToU8("application/vnd.oasis.opendocument.text"), { level: 0 }], "content.xml": strToU8("<x/>") });
-  const r = await run("protokoll.docx", odt);
+  const odg = zipSync({ mimetype: [strToU8("application/vnd.oasis.opendocument.graphics"), { level: 0 }], "content.xml": strToU8("<x/>") });
+  const r = await run("protokoll.docx", odg);
   expect(r.warnings[0].code).toBe("unsupported_format");
   expect(r.warnings[0].message).toContain("OpenDocument");
 });
@@ -54,13 +54,13 @@ it("recognises an ods by content when the extension is wrong", async () => {
   expect((await run("kalkyl.xlsx", odsBytes())).meta.format).toBe("ods");
 });
 
-it("reads xlsx bytes named .ods as xlsx, and still names an odt", async () => {
+it("reads xlsx bytes named .ods as xlsx, and still names an odg", async () => {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([["A"], ["1"]]), "Blad");
   const xlsx = new Uint8Array(XLSX.write(wb, { bookType: "xlsx", type: "array" }));
   expect((await run("fel.ods", xlsx)).meta.format).toBe("xlsx");
-  const odt = zipSync({ mimetype: [strToU8("application/vnd.oasis.opendocument.text"), { level: 0 }], "content.xml": strToU8("<x/>") });
-  const r = await run("brev.ods", odt);
+  const odg = zipSync({ mimetype: [strToU8("application/vnd.oasis.opendocument.graphics"), { level: 0 }], "content.xml": strToU8("<x/>") });
+  const r = await run("brev.ods", odg);
   expect(r.warnings[0].code).toBe("unsupported_format");
   expect(r.warnings[0].message).toContain("OpenDocument");
 });
