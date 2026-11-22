@@ -1,6 +1,11 @@
 // What changed, for users, in Swedish. Newest first, keep the latest 5; add an entry with every release.
 export const NEWS: { version: string; date: string; items: string[] }[] = [
   {
+    version: "1.9.0",
+    date: "2026-11-22",
+    items: ["Silar läser nu textfiler (.txt), Markdown (.md) och webbsidor sparade som .html.", "Webbsidor blir rubriker, listor, tabeller och länkar, utan skript och bilder."],
+  },
+  {
     version: "1.8.0",
     date: "2026-11-22",
     items: ["Silar läser nu OpenDocument-kalkylblad (.ods) från LibreOffice Calc.", "Klicka på versionsnumret längst ned på sidan för att se vad som är nytt."],
@@ -25,17 +30,5 @@ export const NEWS: { version: string; date: string; items: string[] }[] = [
     version: "1.6.1",
     date: "2026-11-09",
     items: ["Ny länk längst ned för att rapportera fel."],
-  },
-  {
-    version: "1.6.0",
-    date: "2026-11-09",
-    items: [
-      "PDF: svar i ifyllda formulär kommer med.",
-      "PDF: inskannade sidor ger en varning, även när de har en stämpel eller ett sidnummer.",
-      "PowerPoint: dolda former kommer inte med.",
-      "Excel: månader och veckodagar visas på svenska, och sant och falskt som SANT och FALSKT.",
-      "CSV: filer från Excel med en sep=-rad läses rätt.",
-      "PDF: resultatet visar hur många tokens du sparar jämfört med att ladda upp PDF:en.",
-    ],
   },
 ];

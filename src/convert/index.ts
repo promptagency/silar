@@ -13,6 +13,9 @@ const PARSERS: Record<Format, () => Promise<(bytes: Uint8Array) => Promise<Conve
   csv: () => import("./csv.ts").then((m) => m.convertCsv),
   pdf: () => import("./pdf/index.ts").then((m) => m.convertPdf),
   pptx: () => import("./pptx.ts").then((m) => m.convertPptx),
+  txt: () => import("./text.ts").then((m) => (bytes) => m.convertText(bytes, "txt")),
+  md: () => import("./text.ts").then((m) => (bytes) => m.convertText(bytes, "md")),
+  html: () => import("./html.ts").then((m) => m.convertHtml),
 };
 
 function unsupported({ legacy, locked, opendocument }: { legacy?: string; locked?: true; opendocument?: true }): ConvertResult {
@@ -22,7 +25,7 @@ function unsupported({ legacy, locked, opendocument }: { legacy?: string; locked
     ? "Filen är lösenordsskyddad eller sparad i ett äldre format. Ta bort lösenordet i Office, spara om filen och försök igen."
     : legacy
       ? `Det äldre formatet .${legacy} stöds inte. Spara filen som .${legacy}x och försök igen.`
-      : "Filformatet stöds inte. Silar läser Word (.docx), Excel (.xlsx), Calc (.ods), CSV, PowerPoint (.pptx) och PDF.";
+      : "Filformatet stöds inte. Silar läser Word (.docx), Excel (.xlsx), Calc (.ods), CSV, PowerPoint (.pptx), PDF, text (.txt), Markdown (.md) och webbsidor (.html).";
   return { markdown: "", warnings: [{ code: "unsupported_format", message }], meta: { format: "unknown" } };
 }
 
@@ -37,7 +40,7 @@ export async function convert(file: ConvertInput): Promise<ConvertResult> {
   }
   const warnings: Warning[] =
     bytes.length > LARGE_FILE_BYTES ? [{ code: "large_file", message: "Filen är större än 25 MB. Resultatet kan bli för långt för en del AI-chattar." }] : [];
-  if (found.format !== "csv" && found.format !== "pdf" && (await zipBomb(bytes))) return broken(found.format, BOMB);
+  if (ZIPPED.has(found.format) && (await zipBomb(bytes))) return broken(found.format, BOMB);
   const parse = await PARSERS[found.format]();
   let result: ConvertResult;
   try {
@@ -56,7 +59,8 @@ export async function convert(file: ConvertInput): Promise<ConvertResult> {
   return { ...result, warnings: all };
 }
 
-const APP: Record<Format, string> = { docx: "Word", xlsx: "Excel", ods: "LibreOffice Calc", pptx: "PowerPoint", csv: "ett kalkylprogram", pdf: "en PDF-läsare" };
+const ZIPPED = new Set<Format>(["docx", "xlsx", "ods", "pptx"]);
+const APP: Record<Format, string> = { docx: "Word", xlsx: "Excel", ods: "LibreOffice Calc", pptx: "PowerPoint", csv: "ett kalkylprogram", pdf: "en PDF-läsare", txt: "en textredigerare", md: "en textredigerare", html: "en webbläsare" };
 const BOMB = "Filen blir för stor när den packas upp. Den kan vara skadad eller byggd för att överbelasta datorn, så Silar läser den inte.";
 const TOO_BIG = "Filen är för stor för att läsas i webbläsaren. Prova att dela upp den i mindre delar.";
 

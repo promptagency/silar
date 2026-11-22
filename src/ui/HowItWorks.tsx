@@ -20,6 +20,7 @@ const FAQ: [string, ReactNode][] = [
         <li>CSV: även svenska Excel-exporter med semikolon.</li>
         <li>PowerPoint (.pptx): en rubrik per bild, punktlistor och talaranteckningar.</li>
         <li>PDF: text, rubriker och enkla tabeller. Inskannade sidor går inte att läsa.</li>
+        <li>Text (.txt), Markdown (.md) och webbsidor sparade som .html.</li>
       </ul>
       Äldre .doc-, .xls- och .ppt-filer behöver sparas om i det nya formatet först.
     </>,
@@ -79,7 +80,7 @@ export function HowItWorks({ ref }: { ref: Ref<HTMLDialogElement> }) {
       <ol className="steps">
         <li>
           <h3>Välj ett dokument</h3>
-          <p>Word, Excel, Calc, CSV, PowerPoint eller PDF. En fil i taget.</p>
+          <p>Word, Excel, Calc, CSV, PowerPoint, PDF eller text. En fil i taget.</p>
         </li>
         <li>
           <h3>Silar plockar fram texten</h3>

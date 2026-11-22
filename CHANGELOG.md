@@ -4,6 +4,16 @@ Silar follows [Semantic Versioning](https://semver.org/): MAJOR for changes
 that break how people use Silar or the `convert()` API, MINOR for new
 features and formats, PATCH for fixes. Newest first.
 
+## 1.9.0 (2026-11-22)
+
+- Text (.txt) and Markdown (.md) files are read as they are, with line endings,
+  trailing spaces and runs of blank lines tidied. UTF-16 and legacy encodings
+  are detected as for CSV.
+- Web pages saved as .html become Markdown through the same turndown setup as
+  Word (moved to `src/convert/html.ts`). Scripts, styles, frames, images and
+  form controls are left out; the page title becomes the heading when there is
+  no `<h1>`.
+
 ## 1.8.0 (2026-11-22)
 
 - Calc: OpenDocument spreadsheets (.ods) are read like Excel files, one table
