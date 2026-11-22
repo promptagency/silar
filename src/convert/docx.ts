@@ -74,17 +74,16 @@ const TEXT_PARTS = ["word/document.xml", "word/footnotes.xml", "word/endnotes.xm
 
 /** Mammoth has no setting for hidden text, so it is cut from the XML first. A file without any is returned as it came. */
 function withoutHiddenText(bytes: Uint8Array): Uint8Array {
-  const files = unzipSync(bytes);
-  let found = false;
-  for (const name of TEXT_PARTS) {
-    if (!files[name]) continue;
-    const xml = strFromU8(files[name]);
+  // Only the text parts are inflated to look; images are unpacked only if the file must be rebuilt.
+  const parts = unzipSync(bytes, { filter: (f) => TEXT_PARTS.includes(f.name) });
+  const changed: Record<string, Uint8Array> = {};
+  for (const [name, data] of Object.entries(parts)) {
+    const xml = strFromU8(data);
     const visible = xml.replace(HIDDEN_RUN, "");
-    if (visible === xml) continue;
-    files[name] = strToU8(visible);
-    found = true;
+    if (visible !== xml) changed[name] = strToU8(visible);
   }
-  return found ? zipSync(files, { level: 0 }) : bytes;
+  if (Object.keys(changed).length === 0) return bytes;
+  return zipSync({ ...unzipSync(bytes), ...changed }, { level: 0 });
 }
 
 /**
