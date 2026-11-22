@@ -19,6 +19,6 @@ Ett offlineverktyg som gör om dokument till markdown för AI-chattar. Det finns
 - Gemensamt designspråk med Skrubba och Norn.
 
 ## Följder
-- PDF-kvaliteten är största risken och testas tidigt (fas 2 och 3 i PLAN.md), med ett stopp där Micke avgör om tabellhanteringen räcker.
+- PDF-kvaliteten är största risken och testas tidigt (fas 2 och 3 i MVP-planen, PLAN.md, borttagen efter v1.7.0 och kvar i git-historiken), med ett stopp där Micke avgör om tabellhanteringen räcker.
 - `src/convert/` måste gå att köra i både webbläsare och Node.
 - Glöd är reserverad för droppen och får inte användas till knappar eller varningar.
