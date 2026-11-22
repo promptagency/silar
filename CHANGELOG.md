@@ -4,6 +4,17 @@ Silar follows [Semantic Versioning](https://semver.org/): MAJOR for changes
 that break how people use Silar or the `convert()` API, MINOR for new
 features and formats, PATCH for fixes. Newest first.
 
+## 1.7.1 (2026-11-22)
+
+- A file with a zip entry named after a built-in JavaScript name (such as
+  `constructor`) is reported as damaged instead of failing with an error.
+- PowerPoint: a SmartArt diagram that links back to itself is read once
+  instead of being reported as too big.
+- Word: only the text parts are unpacked to look for hidden text, so files
+  with many images use less memory.
+- Page views go to Plausible's new address.
+- Removed the finished MVP plan (PLAN.md).
+
 ## 1.7.0 (2026-11-11)
 
 - Damaged, empty and hostile files no longer fail with a bare error. They get

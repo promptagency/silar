@@ -65,8 +65,12 @@ function smartArt(model: Node | undefined): string {
   const links = all(child(model, "dgm:cxnLst"), "dgm:cxn").filter((c) => (attr(c, "type") ?? "parOf") === "parOf");
   const order = (c: Node) => Number(attr(c, "srcOrd") ?? 0);
   const lines: string[] = [];
+  // A damaged diagram can link a point back to itself or an ancestor; each point is read once.
+  const seen = new Set<string | undefined>();
   const walk = (id: string | undefined, depth: number) => {
     for (const c of links.filter((l) => attr(l, "srcId") === id).sort((a, b) => order(a) - order(b))) {
+      if (seen.has(attr(c, "destId"))) continue;
+      seen.add(attr(c, "destId"));
       const text = textOf.get(attr(c, "destId"));
       if (text) lines.push(`${"  ".repeat(depth)}- ${text}`);
       walk(attr(c, "destId"), depth + 1);

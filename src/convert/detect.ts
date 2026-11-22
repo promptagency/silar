@@ -40,7 +40,8 @@ async function zipFormat(bytes: Uint8Array): Promise<Format | null> {
   let found: Format | null = null;
   try {
     // The filter sees every entry name and inflates none of them.
-    unzipSync(bytes, { filter: (f) => ((found ??= ZIP_MAIN[f.name] ?? null), false) });
+    // hasOwn: an entry named "constructor" must not match Object.prototype.
+    unzipSync(bytes, { filter: (f) => ((found ??= Object.hasOwn(ZIP_MAIN, f.name) ? ZIP_MAIN[f.name] : null), false) });
   } catch {
     return null;
   }
@@ -53,12 +54,10 @@ export async function detect(name: string, bytes: Uint8Array): Promise<Detected>
   if (bytes.length === 0) return { format: null, empty: true };
   if (byExt === "csv" && !isZip(bytes) && !isOle(bytes) && !isPdf(bytes)) return { format: "csv" };
   if (byExt === "pdf" && isPdf(bytes)) return { format: "pdf" };
-  if (byExt && byExt !== "pdf" && isZip(bytes) && (await zipFormat(bytes)) === byExt) return { format: byExt };
+  const zipped = isZip(bytes) ? await zipFormat(bytes) : null;
+  if (byExt && byExt !== "pdf" && zipped === byExt) return { format: byExt };
   if (isPdf(bytes)) return { format: "pdf" };
-  if (isZip(bytes)) {
-    const format = await zipFormat(bytes);
-    if (format) return { format };
-  }
+  if (zipped) return { format: zipped };
   // A zip named .docx/.xlsx/.pptx whose main part is missing or unreadable: damaged, not foreign.
   // OpenDocument (LibreOffice) is a zip too; its first entry names the type.
   if (bytes[0] === 0x50 && bytes[1] === 0x4b && new TextDecoder("latin1").decode(bytes.subarray(0, 256)).includes("application/vnd.oasis.opendocument")) return { format: null, opendocument: true };
